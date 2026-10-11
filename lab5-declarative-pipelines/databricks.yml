@@ -1,0 +1,60 @@
+# This is a Declarative Automation Bundle definition for labfive.
+# See https://docs.databricks.com/dev-tools/bundles/index.html for documentation.
+bundle:
+  name: labfive
+  uuid: 567d06b1-0cc0-486d-a4dc-90a79e63b5c5
+
+include:
+  - resources/*.yml
+
+# Variable declarations. These variables are assigned in the dev/prod targets below.
+variables:
+  catalog:
+    description: Unity Catalog catalog for Lab 5
+
+  schema:
+    description: Default pipeline schema
+
+  bronze_schema:
+    description: Existing Bronze schema
+
+  silver_schema:
+    description: Existing Silver schema
+
+  raw_volume_path:
+    description: Directory containing raw CSV files
+
+targets:
+  dev:
+    # The default target uses 'mode: development' to create a development copy.
+    # - Deployed resources get prefixed with '[dev my_user_name]'
+    # - Any job schedules and triggers are paused by default.
+    # See also https://docs.databricks.com/dev-tools/bundles/deployment-modes.html.
+    mode: development
+    default: true
+    workspace:
+      host: https://adb-7405619332572019.19.azuredatabricks.net
+    variables:
+      catalog: dbr_dev_ua5816bd
+      schema: viktoriia_kalenichenko_silver
+      bronze_schema: viktoriia_kalenichenko_bronze
+      silver_schema: viktoriia_kalenichenko_silver
+      raw_volume_path: /Volumes/dbr_dev_ua5816bd/viktoriia_kalenichenko/raw_data
+
+    presets:
+      artifacts_dynamic_version: true
+  prod:
+    mode: production
+    workspace:
+      host: https://adb-7405619332572019.19.azuredatabricks.net
+      # We explicitly deploy to /Workspace/Users/victoriya44250@softserve.academy to make sure we only have a single copy.
+      root_path: /Workspace/Users/victoriya44250@softserve.academy/.bundle/${bundle.name}/${bundle.target}
+    variables:
+      variables:
+        bronze_schema: viktoriia_kalenichenko_bronze
+        silver_schema: viktoriia_kalenichenko_silver
+        raw_volume_path: /Volumes/dbr_dev_ua5816bd/viktoriia_kalenichenko/raw_data
+
+    permissions:
+      - user_name: victoriya44250@softserve.academy
+        level: CAN_MANAGE

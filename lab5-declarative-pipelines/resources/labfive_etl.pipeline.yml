@@ -1,0 +1,25 @@
+
+resources:
+  pipelines:
+    labfive_etl:
+      name: labfive_etl
+      serverless: true
+      continuous: false
+      catalog: ${var.catalog}
+      schema: ${var.schema}
+
+      root_path: "../src/labfive_etl"
+
+      configuration:
+        lab5.catalog: ${var.catalog}
+        lab5.bronze_schema: ${var.bronze_schema}
+        lab5.silver_schema: ${var.silver_schema}
+        lab5.raw_volume_path: ${var.raw_volume_path}
+
+      libraries:
+        - glob:
+            include: ../src/labfive_etl/transformations/**
+
+      environment:
+        dependencies:
+          - --editable ${workspace.file_path}
