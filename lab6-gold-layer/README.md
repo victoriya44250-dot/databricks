@@ -122,7 +122,8 @@ Role switching was performed for demonstration purposes. In a production environ
 
 See the `governance/` folder.
 
-###Governance Role Tests
+### Governance Role Tests
+
 **Admin:**
 ![admin](screenshots/governance_test_admin.png)
 **Anlyst:**
