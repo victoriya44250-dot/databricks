@@ -12,7 +12,7 @@ The original Silver tables were stored in another DB workspace.
 
 To continue the project in a new trial workspace: I exported three silver tables as parquet files; uploaded the parquet files to a Unity Catalog Volume; used PySpark to read the files and create managed delta tables; checked the restored data before building the gold layer.
 
-The migrated tables were `yield_and_climate`, `environment`, and `dim_country_scd1`.
+The migrated tables were `yield_and_climate`, `environment`, and `scd1`.
 
 See the `data_migration/` folder.
 
@@ -109,8 +109,7 @@ I simulated a decrease to 50 rows and verified that the alert triggered successf
 
 ## 6. Data Governance
 
-I implemented data access controls using Unity Catalog.
-GRANT, RLS and CLS were provided using three roles:
+I demonstrated GRANT SELECT permissions and implemented RLS and CLS using three access roles.:
 
  - **admin**: all rows and full production values.
  - **analyst**: all rows, but production values are masked. 
