@@ -109,7 +109,7 @@ I simulated a decrease to 50 rows and verified that the alert triggered successf
 
 ## 6. Data Governance
 
-I demonstrated GRANT SELECT permissions and implemented RLS and CLS using three access roles.:
+I demonstrated GRANT SELECT permissions and implemented RLS and CLS using three access roles:
 
  - **admin**: all rows and full production values.
  - **analyst**: all rows, but production values are masked. 
@@ -125,7 +125,7 @@ See the `governance/` folder.
 
 **Admin:**
 ![admin](screenshots/governance_test_admin.png)
-**Anlyst:**
+**Analyst:**
 ![analyst](screenshots/governance_test_analyst.png)
 **Regional_viewer**
 ![viewer](screenshots/governance_test_viewer.png)
