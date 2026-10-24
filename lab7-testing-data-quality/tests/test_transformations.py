@@ -2,7 +2,7 @@
 import sys
 from pathlib import Path
 
-# Add the project root to Python's import path
+# Make the project module importable
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from src.transformations import (
@@ -12,6 +12,7 @@ from src.transformations import (
     prepare_agriculture,
     join_agriculture_country,
 )
+
 
 def test_clean_country_name():
     assert clean_country_name(" Ukraine ") == "Ukraine"
@@ -33,29 +34,17 @@ def test_is_valid_production():
     assert is_valid_production(None) is False
 
 
-from pyspark.sql import DataFrame
-from pyspark.sql import functions as F
-
 def test_prepare_agriculture(spark):
-    """Test cleaning agriculture data with PySpark."""
-
-    # Create a small test DataFrame
+    """Check cleaning of agriculture DataFrame columns."""
     data = [
         (" Ukraine ", " Wheat ", "2022"),
         (" France ", " Barley ", "2021"),
     ]
 
-    columns = ["AREA", "ITEM", "YEAR"]
-
-    df = spark.createDataFrame(data, columns)
-
-    # Apply our transformation
+    df = spark.createDataFrame(data, ["AREA", "ITEM", "YEAR"])
     result = prepare_agriculture(df)
-
-    # Collect the transformed rows
     rows = result.collect()
 
-    # Check the results
     assert rows[0]["AREA"] == "Ukraine"
     assert rows[0]["ITEM"] == "Wheat"
     assert rows[0]["YEAR"] == 2022
@@ -64,59 +53,36 @@ def test_prepare_agriculture(spark):
     assert rows[1]["ITEM"] == "Barley"
     assert rows[1]["YEAR"] == 2021
 
-    # Check the YEAR column type
     assert dict(result.dtypes)["YEAR"] == "int"
 
+
 def test_join_agriculture_country(spark):
-    """Test joining agriculture data with country dimension."""
-
-    agriculture_data = [
-        ("Ukraine", "Wheat", 2022, 1000.0),
-        ("France", "Barley", 2022, 2000.0),
-        ("Atlantis", "Wheat", 2022, 500.0),
-    ]
-
-    agriculture_columns = [
-        "AREA",
-        "ITEM",
-        "YEAR",
-        "PRODUCTION_QUANTITY",
-    ]
-
-    agriculture_df = spark.createDataFrame(
-        agriculture_data,
-        agriculture_columns
+    """Check country matching and production values after JOIN."""
+    agriculture = spark.createDataFrame(
+        [
+            ("Ukraine", "Wheat", 2022, 1000.0),
+            ("France", "Barley", 2022, 2000.0),
+            ("Atlantis", "Wheat", 2022, 500.0),
+        ],
+        ["AREA", "ITEM", "YEAR", "PRODUCTION_QUANTITY"],
     )
 
-    country_data = [
-        ("Ukraine", "UKR"),
-        ("France", "FRA"),
-    ]
-
-    country_columns = ["country_name", "country_code"]
-
-    countries_df = spark.createDataFrame(
-        country_data,
-        country_columns
+    countries = spark.createDataFrame(
+        [
+            ("Ukraine", "UKR"),
+            ("France", "FRA"),
+        ],
+        ["country_name", "country_code"],
     )
 
-    # Apply the JOIN transformation
-    result = join_agriculture_country(
-        agriculture_df,
-        countries_df
-    )
-
+    result = join_agriculture_country(agriculture, countries)
     rows = result.collect()
 
-    # INNER JOIN should exclude Atlantis
-    assert result.count() == 2
+    assert len(rows) == 2
 
-    # Verify country keys
     country_keys = {row["country_key"] for row in rows}
-
     assert country_keys == {"UKR", "FRA"}
 
-    # Verify production values
     production_by_country = {
         row["country_key"]: row["PRODUCTION_QUANTITY"]
         for row in rows
@@ -124,4 +90,3 @@ def test_join_agriculture_country(spark):
 
     assert production_by_country["UKR"] == 1000.0
     assert production_by_country["FRA"] == 2000.0
-

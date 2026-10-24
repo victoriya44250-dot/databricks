@@ -1,7 +1,9 @@
 
 from typing import Optional
+
 from pyspark.sql import DataFrame
 from pyspark.sql import functions as F
+
 
 def clean_country_name(name: Optional[str]) -> Optional[str]:
     """Remove leading and trailing spaces from a country name."""
@@ -29,21 +31,21 @@ def is_valid_production(value: Optional[float]) -> bool:
 
     return value >= 0
 
+
 def prepare_agriculture(df: DataFrame) -> DataFrame:
     """Clean country, crop, and year columns in a Spark DataFrame."""
     return (
         df.withColumn("AREA", F.trim(F.col("AREA")))
-          .withColumn("ITEM", F.trim(F.col("ITEM")))
-          .withColumn("YEAR", F.col("YEAR").cast("int"))
+        .withColumn("ITEM", F.trim(F.col("ITEM")))
+        .withColumn("YEAR", F.col("YEAR").cast("int"))
     )
 
 
 def join_agriculture_country(
     agriculture: DataFrame,
-    countries: DataFrame
+    countries: DataFrame,
 ) -> DataFrame:
-    """Join agriculture records with country dimension."""
-
+    """Join agriculture records with the country dimension."""
     a = agriculture.alias("a")
     c = countries.alias("c")
 
@@ -51,7 +53,7 @@ def join_agriculture_country(
         a.join(
             c,
             F.trim(F.col("a.AREA")) == F.col("c.country_name"),
-            "inner"
+            "inner",
         )
         .select(
             F.col("c.country_code").alias("country_key"),

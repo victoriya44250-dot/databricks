@@ -4,7 +4,7 @@ from pyspark.sql import SparkSession
 
 @pytest.fixture(scope="session")
 def spark():
-    """Use the active Databricks Spark session."""
+    """Return the active Spark session for unit tests."""
     session = SparkSession.getActiveSession()
 
     if session is None:
