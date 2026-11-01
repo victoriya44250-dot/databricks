@@ -41,3 +41,14 @@ Workflow: `.github/workflows/lab7-tests.yml` (repository root)
 
 ### GitHub Actions — successful CI run
 ![Successful GitHub Actions run](screenshots/github-actions.png)
+
+## Additional data quality evidence
+
+- [Lakeflow expectations and quarantine](lab7_agriculture_pipeline.py):
+  5 sample records split into 2 valid and 3 quarantined records,
+  with rejection reasons.
+  ![Quarantine: 2 valid and 3 rejected records](screenshots/quarantine.png)
+  
+- [Delta constraints and negative tests](delta_constraints_demo.ipynb):
+  NOT NULL and CHECK constraints reject invalid inserts;
+  a valid insert succeeds. Saved errors are expected negative-test results.
