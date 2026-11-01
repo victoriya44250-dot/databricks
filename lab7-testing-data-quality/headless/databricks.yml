@@ -1,0 +1,36 @@
+bundle:
+  name: lab7-headless-validation
+
+# Include the unchanged modules and tests from the parent Lab 7 folder.
+sync:
+  paths:
+    - ..
+  exclude:
+    - ../.databricks/**
+    - ../**/.databricks/**
+    - ../.env*
+    - ../.databrickscfg
+    - ../.venv/**
+    - ../venv/**
+    - ../**/__pycache__/**
+    - ../.pytest_cache/**
+    - ../screenshots/**
+
+resources:
+  jobs:
+    lab7_headless_tests:
+      name: lab7_headless_tests
+      max_concurrent_runs: 1
+      timeout_seconds: 1800
+      tasks:
+        - task_key: unit_tests
+          notebook_task:
+            notebook_path: ../run_headless_unit_tests.py
+            source: WORKSPACE
+
+targets:
+  dev:
+    mode: development
+    default: true
+    workspace:
+      profile: dbr_dev_ua_5816_trail_3
