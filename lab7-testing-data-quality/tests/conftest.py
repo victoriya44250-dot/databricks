@@ -1,13 +1,27 @@
+
+import os
 import pytest
-from pyspark.sql import SparkSession
+from databricks.connect import DatabricksSession
 
 
 @pytest.fixture(scope="session")
 def spark():
-    """Return the active Spark session for unit tests."""
-    session = SparkSession.getActiveSession()
+    """Connect to Databricks Serverless for Spark tests."""
 
-    if session is None:
-        raise RuntimeError("No active Spark session available")
+    profile = os.environ.get("DATABRICKS_CONFIG_PROFILE")
 
-    return session
+    if not profile:
+        raise RuntimeError(
+            "DATABRICKS_CONFIG_PROFILE is not set"
+        )
+
+    session = (
+        DatabricksSession.builder
+        .serverless()
+        .profile(profile)
+        .getOrCreate()
+    )
+
+    yield session
+
+    session.stop()
