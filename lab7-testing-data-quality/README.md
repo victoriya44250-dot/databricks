@@ -32,4 +32,12 @@ python -m pytest -q tests
 
 GitHub Actions automatically runs **7 tests without Spark**. The remaining **11 Spark-dependent tests** run locally via Databricks Connect.
 
-Workflow: `.github/workflows/lab7-tests.yml` (repository root).
+Workflow: `.github/workflows/lab7-tests.yml` (repository root)
+
+## Screenshots
+
+### Data Quality — 20 checks passed
+![All 20 data quality checks passed](screenshots/dq-checks.png)
+
+### GitHub Actions — successful CI run
+![Successful GitHub Actions run](screenshots/github-actions.png)
