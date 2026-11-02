@@ -27,6 +27,24 @@ Set `DATABRICKS_CONFIG_PROFILE` to a configured Databricks profile and run:
 ```bash
 python -m pytest -q tests
 ```
+## Project organization and execution
+
+- `src/` contains reusable functions; `tests/` contains 18 unit tests.
+- `pipelines/` contains the Lakeflow expectations and quarantine demo.
+- `demos/` contains the Delta constraints notebook with saved test results.
+- Root-level `run_*` files are entry points kept beside `src/` and `tests/`.
+
+### Why two databricks.yml files?
+
+Both configurations support headless execution: running Jobs through the CLI
+without manually executing notebook cells.
+
+- Root `databricks.yml` defines the DQ Job with 20 data-quality checks.
+- `headless/databricks.yml` defines a separate Job running all 18 unit tests.
+
+The bundles are separate to preserve the existing DQ deployment.
+Run CLI commands from the folder containing the intended configuration.
+
 
 ## CI/CD
 
@@ -44,11 +62,11 @@ Workflow: `.github/workflows/lab7-tests.yml` (repository root)
 
 ## Additional data quality evidence
 
-- [Lakeflow expectations and quarantine](lab7_agriculture_pipeline.py):
+- [Lakeflow expectations and quarantine](pipelines/lab7_agriculture_pipeline.py):
   5 sample records split into 2 valid and 3 quarantined records,
   with rejection reasons.
   ![Quarantine: 2 valid and 3 rejected records](screenshots/quarantine.png)
   
-- [Delta constraints and negative tests](delta_constraints_demo.ipynb):
+- [Delta constraints and negative tests](demos/delta_constraints_demo.ipynb):
   NOT NULL and CHECK constraints reject invalid inserts;
   a valid insert succeeds. Saved errors are expected negative-test results.
