@@ -1,21 +1,26 @@
 
 bundle:
   name: lab7-testing-data-quality
-  
+
 variables:
   dq_notebook_path:
     description: "Workspace path to the Data Quality notebook"
+
+  catalog:
+    description: "Unity Catalog for Data Quality checks"
+    default: dbr_dev_ua5816bd
 
 resources:
   jobs:
     lab7_data_quality_job:
       name: lab7_data_quality_job
-
       tasks:
         - task_key: run_dq_checks
           notebook_task:
             notebook_path: ${var.dq_notebook_path}
             source: WORKSPACE
+            base_parameters:
+              catalog: ${var.catalog}
 
 targets:
   dev:
