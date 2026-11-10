@@ -1,4 +1,4 @@
-
+﻿
 name: Lab 8 CI/CD
 
 
@@ -50,14 +50,10 @@ jobs:
             tests/test_transformations.py::test_parse_year \
             tests/test_transformations.py::test_is_valid_production
 
-  
-  bundle-validation:
-    name: Validate PROD Bundle
-    
-    if: |
-      github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'push' && github.ref == 'refs/heads/main')
 
+
+  bundle-validation:
+    name: Validate Bundle
     runs-on: ubuntu-latest
 
     permissions:
@@ -67,21 +63,35 @@ jobs:
       run:
         working-directory: lab8-ci-cd
 
-    env:
-      DATABRICKS_AUTH_TYPE: pat
-      DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
-      DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Set up Python
+        if: github.event_name == 'pull_request'
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install YAML parser
+        if: github.event_name == 'pull_request'
+        run: python -m pip install pyyaml
+
+      - name: Check Bundle YAML on PR
+        if: github.event_name == 'pull_request'
+        run: |
+          python -c "import yaml; yaml.safe_load(open('databricks.yml', encoding='utf-8')); print('Bundle YAML syntax OK')"
 
       - name: Install Databricks CLI
         uses: databricks/setup-cli@main
 
       - name: Validate PROD Bundle
+        env:
+          DATABRICKS_AUTH_TYPE: pat
+          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
         run: databricks bundle validate -t prod
-  
+
   prod-deployment-plan:
     name: Check PROD Deployment Plan
     if: github.event_name == 'workflow_dispatch'
@@ -108,7 +118,7 @@ jobs:
 
       - name: Check PROD deployment plan
         run: databricks bundle plan -t prod
-  
+
   deploy-prod:
     name: Deploy to PROD
     if: |
@@ -119,6 +129,7 @@ jobs:
       - bundle-validation
 
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     permissions:
       contents: read
@@ -145,4 +156,5 @@ jobs:
 
       - name: Deploy PROD Bundle
         run: databricks bundle deploy -t prod
+
 
