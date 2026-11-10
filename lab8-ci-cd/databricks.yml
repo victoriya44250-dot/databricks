@@ -1,0 +1,173 @@
+
+bundle:
+  name: lab8-ci-cd
+
+sync:
+  include:
+    - data/*.csv
+
+variables:
+  catalog:
+    description: Unity Catalog name
+  bronze_schema:
+    description: Bronze schema
+  silver_schema:
+    description: Silver schema
+  gold_schema:
+    description: Gold schema
+  raw_volume:
+    description: Volume containing input CSV files
+    default: raw_files
+
+resources:
+  jobs:
+    lab8_pipeline:
+      name: "${bundle.target}_lab8_pipeline"
+
+      tasks:
+
+        - task_key: bootstrap
+          environment_key: default
+          notebook_task:
+            notebook_path: ./notebooks/00_bootstrap.ipynb
+            base_parameters:
+              catalog: ${var.catalog}
+              bronze_schema: ${var.bronze_schema}
+              raw_volume: ${var.raw_volume}
+              source_data_path: ${workspace.file_path}/data
+
+        - task_key: bronze_ingestion
+          depends_on:
+           - task_key: bootstrap
+          environment_key: default
+          notebook_task:
+            notebook_path: ./notebooks/01_bronze_ingestion.ipynb
+            base_parameters:
+              catalog: ${var.catalog}
+              bronze_schema: ${var.bronze_schema}
+              raw_volume: ${var.raw_volume}
+
+        - task_key: silver_climate
+          depends_on:
+            - task_key: bronze_ingestion
+          environment_key: default
+          notebook_task:
+            notebook_path: ./notebooks/02_silver_transformations.ipynb
+            base_parameters:
+              catalog: ${var.catalog}
+              bronze_schema: ${var.bronze_schema}
+              bronze_table: yield_and_climate
+              silver_schema: ${var.silver_schema}
+              silver_table: yield_and_climate
+              key_columns: "AREA,ITEM,YEAR"
+
+        - task_key: silver_environment
+          depends_on:
+            - task_key: bronze_ingestion
+          environment_key: default
+          notebook_task:
+            notebook_path: ./notebooks/02_silver_transformations.ipynb
+            base_parameters:
+              catalog: ${var.catalog}
+              bronze_schema: ${var.bronze_schema}
+              bronze_table: environment
+              silver_schema: ${var.silver_schema}
+              silver_table: environment
+              key_columns: "AREA,YEAR"
+
+        - task_key: country_scd1
+          depends_on:
+            - task_key: silver_environment
+          environment_key: default
+          notebook_task:
+            notebook_path: ./notebooks/03_country_scd1.ipynb
+            base_parameters:
+              catalog: ${var.catalog}
+              silver_schema: ${var.silver_schema}
+        
+        - task_key: gold_transformations
+          depends_on:
+            - task_key: silver_climate
+            - task_key: silver_environment
+            - task_key: country_scd1
+          environment_key: default
+          notebook_task:
+            notebook_path: ./notebooks/04_gold_transformations.ipynb
+            base_parameters:
+              catalog: ${var.catalog}
+              silver_schema: ${var.silver_schema}
+              gold_schema: ${var.gold_schema}
+
+        - task_key: data_quality
+          depends_on:
+            - task_key: gold_transformations
+          environment_key: default
+          notebook_task:
+            notebook_path: ./notebooks/05_data_quality.ipynb
+            base_parameters:
+              catalog: ${var.catalog}
+              silver_schema: ${var.silver_schema}
+              gold_schema: ${var.gold_schema}
+
+      
+      environments:
+        - environment_key: default
+          spec:
+            environment_version: "2"
+
+
+targets:
+  dev:
+    mode: development
+    default: true
+    workspace:
+      host: https://dbc-a9009abf-9e96.cloud.databricks.com
+      profile: lab8_free_dev
+    variables:
+      catalog: workspace
+      bronze_schema: lab8_dev_bronze
+      silver_schema: lab8_dev_silver
+      gold_schema: lab8_dev_gold
+
+  
+
+  
+  prod:
+    mode: production
+    workspace:
+      host: https://adb-7405604651938730.10.azuredatabricks.net
+      root_path: /Workspace/Users/victoriya44250@softserve.academy/.bundle/${bundle.name}/${bundle.target}
+
+    variables:
+      catalog: dbr_dev_ua5816bd
+      bronze_schema: viktoriia_kalenichenko_prod_bronze
+      silver_schema: viktoriia_kalenichenko_prod_silver
+      gold_schema: viktoriia_kalenichenko_prod_gold
+
+    resources:
+      schemas:
+        bronze:
+          name: ${var.bronze_schema}
+          catalog_name: ${var.catalog}
+
+        silver:
+          name: ${var.silver_schema}
+          catalog_name: ${var.catalog}
+
+        gold:
+          name: ${var.gold_schema}
+          catalog_name: ${var.catalog}
+
+      volumes:
+        raw_files:
+          name: ${var.raw_volume}
+          catalog_name: ${var.catalog}
+          schema_name: ${resources.schemas.bronze.name}
+          volume_type: MANAGED
+
+        autoloader_state:
+          name: autoloader_state
+          catalog_name: ${var.catalog}
+          schema_name: ${resources.schemas.bronze.name}
+          volume_type: MANAGED
+
