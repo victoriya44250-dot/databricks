@@ -70,4 +70,31 @@ jobs:
 
       - name: Validate PROD Bundle
         run: databricks bundle validate -t prod
+  
+  prod-deployment-plan:
+    name: Check PROD Deployment Plan
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    defaults:
+      run:
+        working-directory: lab8-ci-cd
+
+    env:
+      DATABRICKS_AUTH_TYPE: pat
+      DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+      DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Databricks CLI
+        uses: databricks/setup-cli@main
+
+      - name: Check PROD deployment plan
+        run: databricks bundle plan -t prod
 
