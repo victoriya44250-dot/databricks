@@ -1,0 +1,73 @@
+
+name: Lab 8 CI/CD
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "lab8-ci-cd/**"
+      - "lab7-testing-data-quality/**"
+      - ".github/workflows/lab8-ci-cd.yml"
+
+  workflow_dispatch:
+
+jobs:
+  unit-tests:
+    name: Run Unit Tests
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: lab7-testing-data-quality
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: python -m pip install pytest databricks-connect==19.3.0
+
+      - name: Run tests without Spark
+        run: |
+          python -m pytest -q \
+            tests/test_data_quality.py::test_reconciliation_passes \
+            tests/test_data_quality.py::test_reconciliation_fails \
+            tests/test_data_quality.py::test_aggregate_reconciliation_passes \
+            tests/test_data_quality.py::test_aggregate_reconciliation_fails \
+            tests/test_transformations.py::test_clean_country_name \
+            tests/test_transformations.py::test_parse_year \
+            tests/test_transformations.py::test_is_valid_production
+
+  
+  bundle-validation:
+    name: Validate PROD Bundle
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    defaults:
+      run:
+        working-directory: lab8-ci-cd
+
+    env:
+      DATABRICKS_AUTH_TYPE: pat
+      DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+      DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Databricks CLI
+        uses: databricks/setup-cli@main
+
+      - name: Validate PROD Bundle
+        run: databricks bundle validate -t prod
+
