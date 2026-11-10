@@ -1,12 +1,19 @@
 
 name: Lab 8 CI/CD
 
+
 on:
   pull_request:
     branches: [main]
     paths:
       - "lab8-ci-cd/**"
       - "lab7-testing-data-quality/**"
+      - ".github/workflows/lab8-ci-cd.yml"
+
+  push:
+    branches: [main]
+    paths:
+      - "lab8-ci-cd/**"
       - ".github/workflows/lab8-ci-cd.yml"
 
   workflow_dispatch:
@@ -46,7 +53,11 @@ jobs:
   
   bundle-validation:
     name: Validate PROD Bundle
-    if: github.event_name == 'workflow_dispatch'
+    
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/main')
+
     runs-on: ubuntu-latest
 
     permissions:
@@ -97,4 +108,41 @@ jobs:
 
       - name: Check PROD deployment plan
         run: databricks bundle plan -t prod
+  
+  deploy-prod:
+    name: Deploy to PROD
+    if: |
+      github.event_name == 'push' &&
+      github.ref == 'refs/heads/main'
+    needs:
+      - unit-tests
+      - bundle-validation
+
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    concurrency:
+      group: lab8-prod-deployment
+      cancel-in-progress: false
+
+    defaults:
+      run:
+        working-directory: lab8-ci-cd
+
+    env:
+      DATABRICKS_AUTH_TYPE: pat
+      DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+      DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Databricks CLI
+        uses: databricks/setup-cli@main
+
+      - name: Deploy PROD Bundle
+        run: databricks bundle deploy -t prod
 
