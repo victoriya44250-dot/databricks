@@ -171,3 +171,11 @@ targets:
           schema_name: ${resources.schemas.bronze.name}
           volume_type: MANAGED
 
+      dashboards:
+        european_agriculture:
+          display_name: "European Agriculture & Environment Analytics"
+          file_path: ./dashboards/european_agriculture.lvdash.json
+          warehouse_id: "abb8ea0ecf2e1a89"
+          dataset_catalog: ${var.catalog}
+          dataset_schema: ${var.gold_schema}
+          embed_credentials: false

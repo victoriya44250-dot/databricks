@@ -1,0 +1,874 @@
+{
+  "datasets": [
+    {
+      "name": "774cb7d0",
+      "displayName": "crop_year_trends",
+      "queryLines": [
+        "SELECT\r\n",
+        "    year,\r\n",
+        "    crop_name,\r\n",
+        "    country_count,\r\n",
+        "    total_production,\r\n",
+        "    total_area_harvested,\r\n",
+        "    production_per_harvested_area,\r\n",
+        "    avg_reported_yield\r\n",
+        "FROM agg_crop_year\r\n",
+        "ORDER BY year, crop_name;"
+      ]
+    },
+    {
+      "name": "ec421bb0",
+      "displayName": "country_production",
+      "queryLines": [
+        "SELECT\r\n",
+        "    c.country_name,\r\n",
+        "    c.region,\r\n",
+        "    c.subregion,\r\n",
+        "    cr.crop_name,\r\n",
+        "    f.year_key AS year,\r\n",
+        "    SUM(f.production_quantity) AS total_production,\r\n",
+        "    SUM(f.area_harvested) AS total_area_harvested\r\n",
+        "FROM fact_agri_environment f\r\n",
+        "JOIN dim_country c\r\n",
+        "    ON f.country_key = c.country_code\r\n",
+        "JOIN dim_crop cr\r\n",
+        "    ON f.crop_key = cr.crop_key\r\n",
+        "GROUP BY\r\n",
+        "    c.country_name,\r\n",
+        "    c.region,\r\n",
+        "    c.subregion,\r\n",
+        "    cr.crop_name,\r\n",
+        "    f.year_key;"
+      ]
+    },
+    {
+      "name": "64b57250",
+      "displayName": "top_10",
+      "queryLines": [
+        "SELECT\r\n",
+        "    country_name,\r\n",
+        "    SUM(total_production) AS total_production\r\n",
+        "FROM agg_country_year\r\n",
+        "WHERE year BETWEEN 2018 AND 2022\r\n",
+        "GROUP BY country_name\r\n",
+        "ORDER BY total_production DESC\r\n",
+        "LIMIT 10;"
+      ]
+    },
+    {
+      "name": "1be25f9f",
+      "displayName": "environment_trends",
+      "queryLines": [
+        "SELECT\r\n",
+        "    country_name,\r\n",
+        "    region,\r\n",
+        "    year,\r\n",
+        "    forest_area,\r\n",
+        "    agricultural_land,\r\n",
+        "    freshwater_per_capita,\r\n",
+        "    freshwater_withdrawals\r\n",
+        "FROM agg_country_year\r\n",
+        "WHERE year BETWEEN 1990 AND 2022\r\n",
+        "ORDER BY country_name, year;"
+      ]
+    },
+    {
+      "name": "063a148a",
+      "displayName": "agriculture_kpis",
+      "queryLines": [
+        "SELECT\r\n",
+        "    COUNT(DISTINCT country_key) AS total_countries,\r\n",
+        "    COUNT(DISTINCT crop_key) AS total_crops,\r\n",
+        "    COUNT(*) AS total_records,\r\n",
+        "    SUM(production_quantity) AS total_production,\r\n",
+        "    SUM(area_harvested) AS total_harvested_area\r\n",
+        "FROM fact_agri_environment;"
+      ]
+    },
+    {
+      "name": "06931199",
+      "displayName": "production_map",
+      "queryLines": [
+        "SELECT country_name, total_production\r\n",
+        "FROM agg_country_year\r\n",
+        "WHERE year = 2022\r\n",
+        "  AND total_production IS NOT NULL"
+      ]
+    }
+  ],
+  "pages": [
+    {
+      "name": "53481e08",
+      "displayName": "European Agriculture & Environment Analytics",
+      "layout": [
+        {
+          "widget": {
+            "name": "crop-production-trends-1990-2022",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "774cb7d0",
+                  "fields": [
+                    {
+                      "name": "crop_name",
+                      "expression": "`crop_name`"
+                    },
+                    {
+                      "name": "year",
+                      "expression": "`year`"
+                    },
+                    {
+                      "name": "sum(total_production)",
+                      "expression": "SUM(`total_production`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": {
+                  "value": "<p>&nbsp;</p>\n\n`Crop Production Trends (1990–2022)`",
+                  "fields": []
+                }
+              },
+              "version": 3,
+              "mark": {
+                "marker": {
+                  "shape": "circle"
+                }
+              },
+              "widgetType": "line",
+              "encodings": {
+                "x": {
+                  "fieldName": "year",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "y": {
+                  "fieldName": "sum(total_production)",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "color": {
+                  "fieldName": "crop_name",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 4,
+            "width": 6,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "total-production-by-crop-1990-2022",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "774cb7d0",
+                  "fields": [
+                    {
+                      "name": "crop_name",
+                      "expression": "`crop_name`"
+                    },
+                    {
+                      "name": "sum(total_production)",
+                      "expression": "SUM(`total_production`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": {
+                  "value": "<p>&nbsp;</p>\n\n`Total Production by Crop (1990–2022)`",
+                  "fields": []
+                }
+              },
+              "version": 3,
+              "mark": {
+                "colors": [
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 2
+                  }
+                ]
+              },
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "crop_name",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                },
+                "y": {
+                  "fieldName": "sum(total_production)",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 6,
+            "y": 4,
+            "width": 6,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "total-wheat-barley-maize-production-europe-1990-2022",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ec421bb0",
+                  "fields": [
+                    {
+                      "name": "country_name",
+                      "expression": "`country_name`"
+                    },
+                    {
+                      "name": "sum(total_production)",
+                      "expression": "SUM(`total_production`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": {
+                  "value": "Total production of wheat, barley and maize across 38 selected European countries, 1990–2022.",
+                  "fields": []
+                }
+              },
+              "version": 3,
+              "mark": {
+                "colors": [
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 7
+                  }
+                ]
+              },
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "country_name",
+                  "scale": {
+                    "type": "categorical",
+                    "sort": {
+                      "by": "y-reversed"
+                    }
+                  }
+                },
+                "y": {
+                  "fieldName": "sum(total_production)",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 11,
+            "width": 12,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "top-10-european-countries-cereal-production-2018-2022",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "64b57250",
+                  "fields": [
+                    {
+                      "name": "country_name",
+                      "expression": "`country_name`"
+                    },
+                    {
+                      "name": "sum(total_production)",
+                      "expression": "SUM(`total_production`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": {
+                  "value": "Top 10 European Countries by Cereal Production (2018–2022)",
+                  "fields": []
+                }
+              },
+              "version": 3,
+              "mark": {
+                "colors": [
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 3
+                  }
+                ]
+              },
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "country_name",
+                  "scale": {
+                    "type": "categorical",
+                    "sort": {
+                      "by": "y-reversed"
+                    }
+                  }
+                },
+                "y": {
+                  "fieldName": "sum(total_production)",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 17,
+            "width": 7,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "forest-area-trends-by-country-1990-2022",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "1be25f9f",
+                  "fields": [
+                    {
+                      "name": "country_name",
+                      "expression": "`country_name`"
+                    },
+                    {
+                      "name": "year",
+                      "expression": "`year`"
+                    },
+                    {
+                      "name": "avg(forest_area)",
+                      "expression": "AVG(`forest_area`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": {
+                  "value": "<p>&nbsp;</p>\n\n`Forest Area Trends by Country (1990–2022)`",
+                  "fields": []
+                }
+              },
+              "version": 3,
+              "widgetType": "line",
+              "encodings": {
+                "x": {
+                  "fieldName": "year",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "y": {
+                  "fieldName": "avg(forest_area)",
+                  "axis": {
+                    "title": "Forest Area Indicator"
+                  },
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "color": {
+                  "fieldName": "country_name",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 30,
+            "width": 12,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "countries-analyzed",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "063a148a",
+                  "fields": [
+                    {
+                      "name": "sum(total_countries)",
+                      "expression": "SUM(`total_countries`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": {
+                  "value": "Countries Analyzed:",
+                  "fields": []
+                }
+              },
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "sum(total_countries)"
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 1,
+            "width": 3,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "0972e6a3",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "063a148a",
+                  "fields": [
+                    {
+                      "name": "sum(total_crops)",
+                      "expression": "SUM(`total_crops`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": {
+                  "value": "Crops Analyzed:",
+                  "fields": []
+                }
+              },
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "sum(total_crops)"
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 1,
+            "width": 3,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "e051d274",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "063a148a",
+                  "fields": [
+                    {
+                      "name": "sum(total_production)",
+                      "expression": "SUM(`total_production`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": {
+                  "value": "Total Cereal Production (tonnes, 1990–2022)",
+                  "fields": []
+                }
+              },
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "sum(total_production)"
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 9,
+            "y": 1,
+            "width": 3,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "e2802198",
+            "multilineTextboxSpec": {
+              "lines": [
+                "<span style=\"font-size: 18px;\">**European Agriculture & Environment Analytics**</span>"
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 12,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "b97600f6",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "063a148a",
+                  "fields": [
+                    {
+                      "name": "sum(total_records)",
+                      "expression": "SUM(`total_records`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": {
+                  "value": "Total Records:",
+                  "fields": []
+                }
+              },
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "sum(total_records)"
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 6,
+            "y": 1,
+            "width": 3,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "5bb32e82",
+            "multilineTextboxSpec": {
+              "lines": [
+                "**Production Overview**:"
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 3,
+            "width": 12,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "ca8a649c",
+            "multilineTextboxSpec": {
+              "lines": [
+                "**Country Comparison:**"
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 10,
+            "width": 12,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "62ac1c27",
+            "multilineTextboxSpec": {
+              "lines": [
+                "**Environment Trends**"
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 29,
+            "width": 12,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "production-map-2022",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "06931199",
+                  "fields": [
+                    {
+                      "name": "sum(total_production)",
+                      "expression": "SUM(`total_production`)"
+                    },
+                    {
+                      "name": "country_name",
+                      "expression": "`country_name`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": {
+                  "value": "Agricultural Production Across Europe (2022)",
+                  "fields": []
+                }
+              },
+              "version": 1,
+              "widgetType": "choropleth-map",
+              "encodings": {
+                "color": {
+                  "fieldName": "sum(total_production)",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "extra": [
+                  {
+                    "fieldName": "sum(total_production)"
+                  }
+                ],
+                "region": {
+                  "regionType": "mapbox-v4-admin",
+                  "admin0": {
+                    "fieldName": "country_name",
+                    "type": "field",
+                    "geographicRole": "admin0-name-en"
+                  }
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 23,
+            "width": 12,
+            "height": 6
+          }
+        }
+      ],
+      "pageType": "PAGE_TYPE_CANVAS",
+      "layoutVersion": "GRID_V1"
+    },
+    {
+      "name": "4c9c47fe",
+      "displayName": "Global Filters",
+      "layout": [
+        {
+          "widget": {
+            "name": "year",
+            "queries": [
+              {
+                "name": "dashboards/01f1cad2e95f14d2b2e4f9045c45dfce/datasets/01f1cad34da112f2a63c6864fd169b2a_year",
+                "query": {
+                  "datasetName": "774cb7d0",
+                  "fields": [
+                    {
+                      "name": "year",
+                      "expression": "`year`"
+                    },
+                    {
+                      "name": "year_associativity",
+                      "expression": "COUNT_IF(`associative_filter_predicate_group`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "frame": {
+                "showTitle": true,
+                "title": {
+                  "value": "Year",
+                  "fields": []
+                }
+              },
+              "widgetType": "filter-single-select",
+              "encodings": {
+                "fields": [
+                  {
+                    "fieldName": "year",
+                    "queryName": "dashboards/01f1cad2e95f14d2b2e4f9045c45dfce/datasets/01f1cad34da112f2a63c6864fd169b2a_year"
+                  }
+                ]
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 1,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "f452b1bb",
+            "queries": [
+              {
+                "name": "dashboards/01f1cad2e95f14d2b2e4f9045c45dfce/datasets/01f1cae0c2c61c138acffd425b400ac0_country_name",
+                "query": {
+                  "datasetName": "1be25f9f",
+                  "fields": [
+                    {
+                      "name": "country_name",
+                      "expression": "`country_name`"
+                    },
+                    {
+                      "name": "country_name_associativity",
+                      "expression": "COUNT_IF(`associative_filter_predicate_group`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "frame": {
+                "showTitle": true
+              },
+              "widgetType": "filter-single-select",
+              "encodings": {
+                "fields": [
+                  {
+                    "fieldName": "country_name",
+                    "queryName": "dashboards/01f1cad2e95f14d2b2e4f9045c45dfce/datasets/01f1cae0c2c61c138acffd425b400ac0_country_name"
+                  }
+                ]
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 2,
+            "width": 1,
+            "height": 2
+          }
+        }
+      ],
+      "pageType": "PAGE_TYPE_GLOBAL_FILTERS",
+      "layoutVersion": "GRID_V1"
+    }
+  ],
+  "uiSettings": {
+    "theme": {
+      "widgetHeaderAlignment": "ALIGNMENT_UNSPECIFIED"
+    },
+    "applyModeEnabled": false
+  }
+}
