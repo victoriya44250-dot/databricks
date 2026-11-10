@@ -134,6 +134,9 @@ targets:
   
   prod:
     mode: production
+    permissions:
+      - user_name: victoriya44250@softserve.academy
+        level: CAN_MANAGE
     workspace:
       host: https://adb-7405604651938730.10.azuredatabricks.net
       root_path: /Workspace/Users/victoriya44250@softserve.academy/.bundle/${bundle.name}/${bundle.target}
