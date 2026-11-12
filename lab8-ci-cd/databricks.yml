@@ -134,11 +134,6 @@ targets:
   
   prod:
     mode: production
-    permissions:
-      - service_principal_name: d1a2118a-1d70-44cf-ba58-ea3454da6727
-        level: CAN_MANAGE
-      - user_name: victoriya44250@softserve.academy
-        level: CAN_MANAGE
     workspace:
       host: https://adb-7405604651938730.10.azuredatabricks.net
       root_path: /Workspace/Users/victoriya44250@softserve.academy/.bundle/${bundle.name}/${bundle.target}
@@ -150,6 +145,14 @@ targets:
       gold_schema: viktoriia_kalenichenko_prod_gold
 
     resources:
+      jobs:
+        lab8_pipeline:
+          permissions:
+            - user_name: victoriya44250@softserve.academy
+              level: IS_OWNER
+            - service_principal_name: d1a2118a-1d70-44cf-ba58-ea3454da6727
+              level: CAN_MANAGE
+
       schemas:
         bronze:
           name: ${var.bronze_schema}
@@ -178,6 +181,11 @@ targets:
 
       dashboards:
         european_agriculture:
+          permissions:
+            - user_name: victoriya44250@softserve.academy
+              level: CAN_MANAGE
+            - service_principal_name: d1a2118a-1d70-44cf-ba58-ea3454da6727
+              level: CAN_MANAGE
           display_name: "European Agriculture & Environment Analytics"
           file_path: ./dashboards/european_agriculture.lvdash.json
           warehouse_id: "abb8ea0ecf2e1a89"
