@@ -87,14 +87,17 @@ jobs:
 
       - name: Validate PROD Bundle
         env:
-          DATABRICKS_AUTH_TYPE: pat
+          DATABRICKS_AUTH_TYPE: azure-client-secret
           DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
-          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+          ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+          ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+          ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
         run: databricks bundle validate -t prod
 
   prod-deployment-plan:
     name: Check PROD Deployment Plan
-    if: github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
+    needs: bundle-validation
     runs-on: ubuntu-latest
 
     permissions:
@@ -105,9 +108,11 @@ jobs:
         working-directory: lab8-ci-cd
 
     env:
-      DATABRICKS_AUTH_TYPE: pat
+      DATABRICKS_AUTH_TYPE: azure-client-secret
       DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
-      DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+      ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+      ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+      ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
 
     steps:
       - name: Checkout repository
@@ -143,9 +148,11 @@ jobs:
         working-directory: lab8-ci-cd
 
     env:
-      DATABRICKS_AUTH_TYPE: pat
+      DATABRICKS_AUTH_TYPE: azure-client-secret
       DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
-      DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+      ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+      ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+      ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
 
     steps:
       - name: Checkout repository
