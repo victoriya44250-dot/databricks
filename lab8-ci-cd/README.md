@@ -15,11 +15,11 @@ The workflow is in [`.github/workflows/lab8-ci-cd.yml`](../.github/workflows/lab
 
 | Event | GitHub Actions behavior |
 | --- | --- |
-| Pull request to `main` | Run unit tests, validate the PROD Bundle and check its deployment plan without applying changes. |
+| Pull request to `main` | Run unit tests and `databricks bundle validate -t prod`. |
 | Merge to `main` | Run unit tests and validation, then `databricks bundle deploy -t prod`. |
 | Manual workflow dispatch | Run tests, validation and a PROD deployment plan. |
 
-The workflow authenticates as the course service principal `sp-databricks-adls` using `DATABRICKS_HOST`, `ARM_TENANT_ID`, `ARM_CLIENT_ID` and `ARM_CLIENT_SECRET` from GitHub Actions secrets. Their values are not stored in the repository. The PROD data-processing job is not run automatically on every merge, to avoid unnecessary paid compute.
+The workflow reads `DATABRICKS_HOST` and `DATABRICKS_TOKEN` from GitHub Actions secrets. Their values are not stored in the repository. The PROD data-processing job is not run automatically on every merge, to avoid unnecessary paid compute.
 
 ## Production job orchestration
 
@@ -36,6 +36,6 @@ The workflow authenticates as the course service principal `sp-databricks-adls` 
 
 The data flow is implemented as tasks in a Databricks Job rather than as a separate Lakeflow Pipeline resource. DEV schemas and volumes are pre-existing; PROD schemas and volumes are managed by the Bundle. 
 
-The service principal's access to existing PROD Bundle resources was granted through a one-time PAT-based Bundle deployment before switching GitHub Actions authentication. 
+The PROD token is used for PR validation and deployment. The course service principal has `CAN_MANAGE` on Bundle resources, but switching deployment authentication requires a workspace admin to transfer ownership of the existing job. 
 
 The dashboard was exported from a trial Azure Databricks workspace as `.lvdash.json`, preserving its pages, visualizations, filters, and six SQL datasets. Old catalog references were removed from the queries; the PROD catalog and Gold schema are set in the Bundle. Deployment created a new dashboard in PROD using the existing SQL Warehouse. Its data comes from the Gold tables built by the notebooks. We verified the required tables and confirmed that the dashboard displays data.
