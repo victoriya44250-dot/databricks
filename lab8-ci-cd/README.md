@@ -7,7 +7,7 @@ This project promotes the European Agriculture & Environment Analytics workload 
 - `databricks.yml` defines `dev` and `prod` targets and the seven-task `lab8_pipeline` job.
 - `notebooks/00_bootstrap.ipynb` through `05_data_quality.ipynb` load the bundled CSV files, build Bronze, Silver and Gold tables, and check data quality. Table creation and transformations are versioned in the notebooks.
 - `dashboards/european_agriculture.lvdash.json` contains the dashboard pages, visualizations, filters and six SQL datasets. The Bundle points the dashboard to the PROD Gold catalog and schema.
-- The PROD target declares the Bronze, Silver and Gold schemas, managed volumes, dashboard, job and the `CAN_MANAGE` permissions for the owner and course service principal. The DEV target uses existing DEV workspace resources.
+- The PROD target declares the Bronze, Silver and Gold schemas, managed volumes, dashboard, job and the explicit user `IS_OWNER` and service principal `CAN_MANAGE` permissions for the PROD job, plus `CAN_MANAGE` permissions for both on the dashboard. The DEV target uses existing DEV workspace resources.
 
 ## CI/CD flow
 
@@ -15,11 +15,11 @@ The workflow is in [`.github/workflows/lab8-ci-cd.yml`](../.github/workflows/lab
 
 | Event | GitHub Actions behavior |
 | --- | --- |
-| Pull request to `main` | Run unit tests and `databricks bundle validate -t prod`. |
+| Pull request to `main` | Run unit tests, validate the PROD Bundle and inspect its deployment plan without applying changes. |
 | Merge to `main` | Run unit tests and validation, then `databricks bundle deploy -t prod`. |
 | Manual workflow dispatch | Run tests, validation and a PROD deployment plan. |
 
-The workflow reads `DATABRICKS_HOST` and `DATABRICKS_TOKEN` from GitHub Actions secrets. Their values are not stored in the repository. The PROD data-processing job is not run automatically on every merge, to avoid unnecessary paid compute.
+The workflow authenticates as the course service principal `sp-databricks-adls` using `DATABRICKS_HOST`, `ARM_TENANT_ID`, `ARM_CLIENT_ID` and `ARM_CLIENT_SECRET` from GitHub Actions secrets. Their values are not stored in the repository. The PROD data-processing job is not run automatically on every merge, to avoid unnecessary paid compute.
 
 ## Production job orchestration
 
@@ -36,6 +36,6 @@ The workflow reads `DATABRICKS_HOST` and `DATABRICKS_TOKEN` from GitHub Actions 
 
 The data flow is implemented as tasks in a Databricks Job rather than as a separate Lakeflow Pipeline resource. DEV schemas and volumes are pre-existing; PROD schemas and volumes are managed by the Bundle. 
 
-The PROD token is used for PR validation and deployment. The course service principal has `CAN_MANAGE` on Bundle resources, but switching deployment authentication requires a workspace admin to transfer ownership of the existing job. 
+The PROD job remains owned by the developer through an explicit job-level `IS_OWNER` permission; the service principal has `CAN_MANAGE` for deployment. A PR deployment plan under the service principal reported 0 additions, 0 changes, 0 deletions and 9 unchanged resources. 
 
 The dashboard was exported from a trial Azure Databricks workspace as `.lvdash.json`, preserving its pages, visualizations, filters, and six SQL datasets. Old catalog references were removed from the queries; the PROD catalog and Gold schema are set in the Bundle. Deployment created a new dashboard in PROD using the existing SQL Warehouse. Its data comes from the Gold tables built by the notebooks. We verified the required tables and confirmed that the dashboard displays data.
