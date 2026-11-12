@@ -135,6 +135,8 @@ targets:
   prod:
     mode: production
     permissions:
+      - service_principal_name: d1a2118a-1d70-44cf-ba58-ea3454da6727
+        level: CAN_MANAGE
       - user_name: victoriya44250@softserve.academy
         level: CAN_MANAGE
     workspace:
