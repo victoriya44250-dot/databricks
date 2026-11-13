@@ -21,6 +21,14 @@ on:
         options:
           - plan
           - execute
+      scenario:
+        description: "dq: temporary cluster + data quality; etl: full LAB 8 pipeline"
+        type: choice
+        required: true
+        default: dq
+        options:
+          - dq
+          - etl
 
 permissions:
   contents: read
@@ -64,6 +72,7 @@ jobs:
       ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
       ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
       PYTHONUNBUFFERED: "1"
+      LAB9_SCENARIO: ${{ inputs.scenario }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -74,10 +83,10 @@ jobs:
       - name: Install dependencies
         run: python -m pip install -r requirements.txt
       - name: Check metadata without starting compute
-        run: python automation.py --profile env --plan
-      - name: Run notebook on PAID temporary compute
+        run: python automation.py --profile env --scenario "$LAB9_SCENARIO" --plan
+      - name: Execute selected scenario (PAID)
         if: inputs.mode == 'execute'
-        run: python automation.py --profile env --execute
+        run: python automation.py --profile env --scenario "$LAB9_SCENARIO" --execute
       - name: Save execution logs
         if: always() && inputs.mode == 'execute'
         uses: actions/upload-artifact@v4

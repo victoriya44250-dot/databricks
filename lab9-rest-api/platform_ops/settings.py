@@ -17,24 +17,35 @@ def load_config(path):
     return config
 
 
-def prepare(client, config):
-    """Read metadata only: no clusters or runs are created here."""
+def check_workspace(client, config):
+    """Check the Workspace and return the authenticated user."""
     if client.config.host.rstrip("/") != config["workspace"]["host"].rstrip("/"):
         raise ValueError("Profile points to another Workspace")
     user = client.current_user.me().user_name
     if not user:
         raise ValueError("Current user is unavailable")
-    client.cluster_policies.get(policy_id=config["cluster"]["policy_id"])
-    versions = client.clusters.spark_versions().versions or []
-    if config["cluster"]["spark_version"] not in [version.key for version in versions]:
-        raise ValueError("Configured Runtime is unavailable")
+    return user
 
+
+def find_job(client, config):
+    """Resolve one deployed LAB 8 Job by its configured name."""
     matches = list(client.jobs.list(name=config["job"]["name"]))
     if len(matches) != 1:
         raise ValueError(f"Expected one LAB 8 Job, found {len(matches)}")
     job = client.jobs.get(job_id=matches[0].job_id)
     if job.settings is None:
         raise ValueError("Job settings are unavailable")
+    return job
+
+
+def prepare(client, config):
+    """Read metadata only: no clusters or runs are created here."""
+    user = check_workspace(client, config)
+    client.cluster_policies.get(policy_id=config["cluster"]["policy_id"])
+    versions = client.clusters.spark_versions().versions or []
+    if config["cluster"]["spark_version"] not in [version.key for version in versions]:
+        raise ValueError("Configured Runtime is unavailable")
+    job = find_job(client, config)
     tasks = [task for task in job.settings.tasks or []
              if task.task_key == config["job"]["notebook_task_key"]]
     if len(tasks) != 1 or tasks[0].notebook_task is None:
