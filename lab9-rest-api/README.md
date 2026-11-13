@@ -80,3 +80,7 @@ is lost, inspect Compute for `lab9-viktoriia-dq` resources before retrying.
 ![Successful data-quality notebook run](screenshots/02_data_quality_run_success.png)
 
 ![Process exit code zero](screenshots/03_exit_code_zero.png)
+
+![Pull request checks](screenshots/04_github_pr_checks.png)
+
+![GitHub Actions plan success](screenshots/05_github_actions_plan_success.png)
