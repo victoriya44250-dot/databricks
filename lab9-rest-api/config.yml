@@ -1,0 +1,25 @@
+workspace:
+  profile: prod_azure
+  host: https://adb-7405604651938730.10.azuredatabricks.net
+
+job:
+  name: prod_lab8_pipeline
+  notebook_task_key: data_quality
+
+notebook_parameters:
+  catalog: dbr_dev_ua5816bd
+  silver_schema: viktoriia_kalenichenko_prod_silver
+  gold_schema: viktoriia_kalenichenko_prod_gold
+
+cluster:
+  name_prefix: lab9-viktoriia-dq
+  policy_id: "00173C9A6978A23D"
+  node_type_id: Standard_D4ds_v5
+  spark_version: "16.4.x-scala2.12"
+  num_workers: 0
+  autotermination_minutes: 15
+
+timeouts:
+  cluster_start_seconds: 1200
+  notebook_run_seconds: 900
+  poll_interval_seconds: 15

@@ -1,0 +1,88 @@
+name: Lab 9 Platform Automation
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "lab9-rest-api/**"
+      - ".github/workflows/lab9-platform-ops.yml"
+  push:
+    branches: [main]
+    paths:
+      - "lab9-rest-api/**"
+      - ".github/workflows/lab9-platform-ops.yml"
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "plan checks metadata; execute starts PAID compute"
+        type: choice
+        required: true
+        default: plan
+        options:
+          - plan
+          - execute
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    working-directory: lab9-rest-api
+
+jobs:
+  unit-tests:
+    name: Offline tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run tests with mocked Databricks responses
+        run: python -m pytest tests -q
+
+  databricks-automation:
+    name: Manual Databricks automation
+    needs: unit-tests
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    # Leave time for startup, notebook execution, cancellation and cleanup.
+    timeout-minutes: 90
+    concurrency:
+      # Share the LAB 8 deployment lock so its notebooks are not redeployed mid-run.
+      group: lab8-prod-deployment
+      cancel-in-progress: false
+    env:
+      DATABRICKS_AUTH_TYPE: azure-client-secret
+      DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+      ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+      ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+      ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+      PYTHONUNBUFFERED: "1"
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Check metadata without starting compute
+        run: python automation.py --profile env --plan
+      - name: Run notebook on PAID temporary compute
+        if: inputs.mode == 'execute'
+        run: python automation.py --profile env --execute
+      - name: Save execution logs
+        if: always() && inputs.mode == 'execute'
+        uses: actions/upload-artifact@v4
+        with:
+          name: lab9-run-${{ github.run_id }}-${{ github.run_attempt }}
+          path: lab9-rest-api/logs/*.log
+          if-no-files-found: warn
+          retention-days: 14
