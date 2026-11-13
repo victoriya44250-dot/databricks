@@ -1,8 +1,10 @@
 # LAB 9: Databricks REST API Automation
 
-The Python SDK runs the existing LAB 8 data-quality notebook on a temporary
-single-node cluster, monitors its result and attempts cluster cleanup in `finally`.
-The existing LAB 8 Job is read to discover the notebook; the full ETL is not started.
+The Python SDK supports two scenarios:
+- `dq` (default): runs the LAB 8 data-quality notebook on a temporary single-node
+  cluster, monitors its result and attempts cluster cleanup in `finally`.
+- `etl`: triggers the full deployed `prod_lab8_pipeline` Job, monitors its run
+  and requires all seven tasks to succeed. It uses the Job's existing compute settings.
 
 ## Files
 
@@ -15,6 +17,7 @@ lab9-rest-api/
 │   ├── __init__.py           # marks the directory as a Python package
 │   ├── settings.py           # load settings and check metadata
 │   ├── compute.py            # create and remove the temporary cluster
+│   ├── etl.py                # trigger and monitor the full LAB 8 Job
 │   └── runs.py               # submit, monitor and cancel notebook runs
 ├── scripts/
 │   ├── check_connection.py   # early connection-check exercise
@@ -50,6 +53,22 @@ Preview the plan (reads Databricks metadata, does not start compute):
 The default without flags is also preview only. `--execute` enables compute
 and must only be used after the separate execution confirmation.
 
+Preview the full ETL without starting it:
+
+```powershell
+.\.venv\Scripts\python.exe .\automation.py --scenario etl --plan
+```
+
+After explicit approval, replace `--plan` with `--execute` to run all seven tasks.
+This uses deployed notebooks (not local uncommitted edits) and can update
+Bronze/Silver/Gold data. A one-hour local deadline triggers cancellation of this
+run; keep the process running until it finishes. Forced termination can prevent
+cancellation. The script does not delete compute owned by the existing Job.
+
+GitHub Actions uses the LAB 8 authentication secrets. PRs/pushes run offline tests;
+manual runs on `main` offer `scenario: dq/etl` and `mode: plan/execute` (default: plan).
+
+
 The early diagnostic exercises are optional, not prerequisites for every run:
 
 ```powershell
@@ -66,7 +85,8 @@ for readiness, submit a notebook, save its run ID, monitor, then clean up.
 Moving a file into a folder changes its import path; the imports have been updated.
 The diagnostic `preflight.py` now locates `config.yml` one directory above itself.
 
-Only a `SUCCESS` notebook result plus successful cleanup yields exit code 0.
+In `dq`, only a `SUCCESS` notebook result plus successful cleanup yields exit code 0.
+In `etl`, the run and every expected task must report `SUCCESS` for exit code 0.
 Failures return 1. Executions write IDs and status changes to `logs/`.
 Forced process termination can prevent `finally` from finishing. Auto-termination
 after 15 idle minutes and the notebook timeout are fallback limits, not a guarantee
@@ -84,3 +104,7 @@ is lost, inspect Compute for `lab9-viktoriia-dq` resources before retrying.
 ![Pull request checks](screenshots/04_github_pr_checks.png)
 
 ![GitHub Actions plan success](screenshots/05_github_actions_plan_success.png)
+
+![Full ETL execution](screenshots/06_full_etl_success.png)
+
+![Successful ETL task graph](screenshots/07_full_etl_graph.png)

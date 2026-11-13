@@ -27,9 +27,11 @@ def submit_notebook(client, config, cluster_id, notebook_path):
     return run.run_id
 
 
-def wait_for_run(client, config, run_id):
+def wait_for_run(client, config, run_id, *, timeout_seconds=None, expected_tasks=None):
     # Wait longer locally so Databricks can report its own notebook timeout first.
-    deadline = time.monotonic() + config["timeouts"]["notebook_run_seconds"] + 300
+    if timeout_seconds is None:
+        timeout_seconds = config["timeouts"]["notebook_run_seconds"] + 300
+    deadline = time.monotonic() + timeout_seconds
     previous = None
     while True:
         run = client.jobs.get_run(run_id=run_id)
@@ -41,9 +43,19 @@ def wait_for_run(client, config, run_id):
             previous = lifecycle, result
         if lifecycle in TERMINAL:
             LOG.info("Run page: %s", run.run_page_url)
-            if result != "SUCCESS":
+            succeeded = result == "SUCCESS"
+            if expected_tasks is not None:
+                outcomes = {
+                    task.task_key: task.state.result_state.value
+                    if task.state and task.state.result_state else None
+                    for task in run.tasks or []
+                }
+                LOG.info("Task results: %s", outcomes)
+                succeeded = (succeeded and set(outcomes) == set(expected_tasks)
+                             and all(value == "SUCCESS" for value in outcomes.values()))
+            if not succeeded:
                 log_failure(client, run)
-            return result == "SUCCESS"
+            return succeeded
         if time.monotonic() >= deadline:
             raise TimeoutError(f"Run {run_id} exceeded local timeout")
         time.sleep(config["timeouts"]["poll_interval_seconds"])

@@ -23,3 +23,14 @@ timeouts:
   cluster_start_seconds: 1200
   notebook_run_seconds: 900
   poll_interval_seconds: 15
+
+etl:
+  timeout_seconds: 3600
+  expected_tasks:
+    - bootstrap
+    - bronze_ingestion
+    - silver_climate
+    - silver_environment
+    - country_scd1
+    - gold_transformations
+    - data_quality

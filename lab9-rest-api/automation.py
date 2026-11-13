@@ -9,6 +9,7 @@ from uuid import uuid4
 from databricks.sdk import WorkspaceClient
 
 from platform_ops.compute import remove_cluster, request_cluster
+from platform_ops.etl import execute_etl, prepare_etl, show_etl_plan
 from platform_ops.runs import cancel_run, submit_notebook, wait_for_run
 from platform_ops.settings import load_config, prepare, show_plan
 
@@ -54,9 +55,11 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--config", type=Path, default=Path(__file__).with_name("config.yml"))
     parser.add_argument("--profile", help="Override profile; 'env' uses CI authentication")
+    parser.add_argument("--scenario", choices=("dq", "etl"), default="dq",
+                        help="dq: temporary cluster + notebook; etl: full existing LAB 8 Job")
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument("--plan", action="store_true", help="Preview only (default)")
-    mode.add_argument("--execute", action="store_true", help="Create paid compute and run notebook")
+    mode.add_argument("--execute", action="store_true", help="Enable PAID execution of the selected scenario")
     args = parser.parse_args(argv)
     logging.basicConfig(level=logging.WARNING, format="%(asctime)s %(levelname)s %(message)s")
     LOG.setLevel(logging.INFO)
@@ -64,8 +67,12 @@ def main(argv=None):
         config = load_config(args.config)
         profile = args.profile or config["workspace"]["profile"]
         client = WorkspaceClient() if profile == "env" else WorkspaceClient(profile=profile)
-        user, notebook_path = prepare(client, config)
-        show_plan(config, notebook_path)
+        if args.scenario == "etl":
+            user, job = prepare_etl(client, config)
+            show_etl_plan(config, job)
+        else:
+            user, notebook_path = prepare(client, config)
+            show_plan(config, notebook_path)
         if not args.execute:
             print("PLAN ONLY: no compute started.")
             return 0
@@ -77,6 +84,9 @@ def main(argv=None):
         handler.setFormatter(logging.Formatter("%(asctime)s %(levelname)s %(message)s"))
         LOG.addHandler(handler)
         try:
+            if args.scenario == "etl":
+                LOG.info("Log: %s; caller: %s; Job ID: %s", log_path, user, job.job_id)
+                return execute_etl(client, config, job.job_id)
             LOG.info("Log: %s; user: %s; notebook: %s", log_path, user, notebook_path)
             LOG.info("Cluster settings: %s", config["cluster"])
             return execute(client, config, user, notebook_path)
