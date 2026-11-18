@@ -1,5 +1,3 @@
-
--- Databricks notebook source
 -- Lab 10 Part B: Initial Customer Load
 
 -- Load customers once and store the initial CDC watermark
@@ -8,19 +6,9 @@ INSERT INTO dbr_dev_ua5816bd.viktoriia_kalenichenko_lab10.dim_customer_scd2 (
     suffix, company_name, sales_person, email_address, phone,
     modified_date, valid_from, valid_to, is_current, is_deleted,
     start_lsn, end_lsn
-)
-SELECT
-    c.CustomerID,
-    c.Title,
-    c.FirstName,
-    c.MiddleName,
-    c.LastName,
-    c.Suffix,
-    c.CompanyName,
-    c.SalesPerson,
-    c.EmailAddress,
-    c.Phone,
-    c.ModifiedDate,
+) 
+SELECT c.CustomerID, c.Title, c.FirstName, c.MiddleName, c.LastName,c.Suffix, c.CompanyName, c.SalesPerson,
+    c.EmailAddress, c.Phone, c.ModifiedDate,
     current_timestamp(),
     CAST(NULL AS TIMESTAMP),
     true,

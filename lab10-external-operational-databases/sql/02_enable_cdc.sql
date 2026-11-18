@@ -1,4 +1,3 @@
-
 -- Lab 10 Part B: SQL Server CDC setup
 -- Run in Azure SQL Database: free-sql-db-adventureworks
 

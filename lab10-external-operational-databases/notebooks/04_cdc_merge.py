@@ -10,9 +10,7 @@ TARGET = "dbr_dev_ua5816bd.viktoriia_kalenichenko_lab10.dim_customer_scd2"
 # Check the initial state before processing changes.
 display(spark.sql(f"""
 SELECT
-    COUNT(*) AS total_versions,
-    COUNT_IF(is_current) AS current_customers,
-    MAX(start_lsn) AS latest_start_lsn
+    COUNT(*) AS total_versions, COUNT_IF(is_current) AS current_customers,MAX(start_lsn) AS latest_start_lsn
 FROM {TARGET}
 """))
 
@@ -127,38 +125,28 @@ spark.sql(merge_sql)
 
 # Verify customer history after the merge.
 display(spark.sql(f"""
-SELECT
-    customer_id,
-    company_name,
-    email_address,
-    phone,
-    valid_from,
-    valid_to,
-    is_current,
-    is_deleted
+SELECT customer_id,company_name,email_address, phone,valid_from,valid_to, is_current, is_deleted
 FROM {TARGET}
 WHERE customer_id IN (30119, 30120, 30121)
-ORDER BY customer_id, valid_from, start_lsn
-"""))
+ORDER BY customer_id, valid_from, start_lsn"""))
 
 # COMMAND ----------
 
 # Check final version counts.
 display(spark.sql(f"""
-SELECT
-    COUNT(*) AS total_versions,
+SELECT  COUNT(*) AS total_versions,
     COUNT_IF(is_current) AS current_customers,
     COUNT_IF(is_deleted) AS deleted_versions
 FROM {TARGET}
-"""))
+""")
+)
 
 
 # COMMAND ----------
 
 # Validate historical, current and deleted versions
 display(spark.sql(f"""
-SELECT
-    customer_id,
+SELECT customer_id,
     COUNT(*) AS versions,
     COUNT_IF(is_current) AS current_versions,
     COUNT_IF(is_deleted) AS deleted_versions
