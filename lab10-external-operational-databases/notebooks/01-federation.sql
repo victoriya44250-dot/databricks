@@ -1,3 +1,4 @@
+-- Databricks notebook source
 -- Lakehouse Federation
 -- Querying Azure SQL through a foreign catalog and comparing it with Delta Lake.
 
