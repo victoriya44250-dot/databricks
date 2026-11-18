@@ -14,10 +14,9 @@ OPTIONS (
 DESCRIBE CONNECTION victoriya44250_lab10_azure_sql_conn;
 
 CREATE FOREIGN CATALOG IF NOT EXISTS
-  viktoriia_kalenichenko_lab10
+  victoriya44250_lab10_adventureworkslt
 USING CONNECTION victoriya44250_lab10_azure_sql_conn
 OPTIONS (database 'free-sql-db-adventureworks');
-
 
 -- COMMAND ----------
 

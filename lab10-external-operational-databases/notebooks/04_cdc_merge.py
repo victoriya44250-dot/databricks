@@ -155,18 +155,6 @@ FROM {TARGET}
 
 # COMMAND ----------
 
-# Verify SCD2 history for test customers
-display(spark.sql(f"""
-SELECT
-    customer_id, company_name, email_address, phone,
-    valid_from, valid_to, is_current, is_deleted
-FROM {TARGET}
-WHERE customer_id IN (30119, 30120, 30121)
-ORDER BY customer_id, valid_from, start_lsn
-"""))
-
-# COMMAND ----------
-
 # Validate historical, current and deleted versions
 display(spark.sql(f"""
 SELECT

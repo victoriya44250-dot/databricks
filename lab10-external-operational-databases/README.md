@@ -3,6 +3,7 @@
 ## Overview
 
 This lab demonstrates two approaches to integrating an external operational database with Azure Databricks: **Lakehouse Federation** for querying live data and **Change Data Capture (CDC)** for incremental data processing.
+The lab uses Microsoft's AdventureWorksLT sample database deployed in Azure SQL Database, containing operational sales, customer, and product data.
 
 **Architecture:**
 
