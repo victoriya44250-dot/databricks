@@ -1,3 +1,4 @@
+-- Databricks notebook source
 -- Lab 10: External Operational Databases
 -- Setup: Azure SQL connection
 
