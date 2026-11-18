@@ -1,3 +1,4 @@
+# Databricks notebook source
 # Lab 10: Incremental CDC Merge (SCD Type 2)
 
 # COMMAND ----------

@@ -1,3 +1,4 @@
+-- Databricks notebook source
 -- Lab 10 Part B: Initial Customer Load
 
 -- Load customers once and store the initial CDC watermark

@@ -1,3 +1,4 @@
+-- Databricks notebook source
 -- Lab 10 Part B: CDC Exploration
 
 -- COMMAND ----------
