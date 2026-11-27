@@ -1,0 +1,42 @@
+bundle:
+  name: lab12-agri-rag
+
+resources:
+  jobs:
+    rag_qa:
+      name: lab12-rag-qa-evaluation
+      max_concurrent_runs: 1
+      tasks:
+        - task_key: answer_and_evaluate
+          environment_key: default
+          notebook_task:
+            notebook_path: ./notebooks/05_rag_complete.ipynb
+            base_parameters:
+              run_evaluation: "true"
+      environments:
+        - environment_key: default
+          spec:
+            environment_version: "2"
+            dependencies:
+              - databricks-ai-search==0.83
+    rag_smoke:
+      name: lab12-rag-smoke
+      max_concurrent_runs: 1
+      tasks:
+        - task_key: verify_existing_rag
+          environment_key: default
+          notebook_task:
+            notebook_path: ./notebooks/06_smoke.py
+      environments:
+        - environment_key: default
+          spec:
+            environment_version: "2"
+            dependencies:
+              - databricks-ai-search==0.83
+
+targets:
+  dev:
+    default: true
+    mode: development
+    workspace:
+      host: https://dbc-675eb05e-f45c.cloud.databricks.com

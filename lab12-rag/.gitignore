@@ -1,0 +1,13 @@
+.venv/
+__pycache__/
+*.pyc
+.databricks/
+.env
+.env.*
+.databrickscfg
+.codex/
+vendor/
+*.pdf
+.agents/
+.ai-dev-kit/
+evidence/
