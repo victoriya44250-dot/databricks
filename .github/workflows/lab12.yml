@@ -1,0 +1,46 @@
+name: Lab 12 tests and deployment
+on:
+  pull_request:
+    paths: ['lab12-rag/**', '.github/workflows/lab12.yml']
+  push:
+    branches: [main]
+    paths: ['lab12-rag/**', '.github/workflows/lab12.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: lab12-rag
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m unittest discover -s tests -v
+      - run: python build_notebook.py
+
+  deploy:
+    if: github.event_name != 'pull_request'
+    needs: tests
+    runs-on: ubuntu-latest
+    environment: lab12-dev
+    defaults:
+      run:
+        working-directory: lab12-rag
+    env:
+      DATABRICKS_HOST: ${{ secrets.LAB12_DATABRICKS_HOST }}
+      DATABRICKS_TOKEN: ${{ secrets.LAB12_DATABRICKS_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: databricks/setup-cli@main
+      - name: Validate the dedicated Lab 12 target
+        run: databricks bundle validate --strict -t dev
+      - name: Deploy only the new smoke-test job
+        run: databricks bundle deploy -t dev
+      - name: Run retrieval smoke test
+        run: databricks bundle run -t dev rag_smoke

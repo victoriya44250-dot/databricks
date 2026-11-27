@@ -1,0 +1,10 @@
+[
+  {"id":"Q1","question":"What are the three levels of agricultural risk management interventions in Italy?","pages":[59],"expected":"AGRICAT catastrophic risks; risk transfer/sharing; prevention, mitigation, preparedness and ex-post interventions."},
+  {"id":"Q2","question":"Which climatic risks are classified as catastrophic in Italy?","pages":[59],"expected":"Flood, drought and frost."},
+  {"id":"Q3","question":"What shares of Italian crop production value and agricultural area were insured in 2023?","pages":[64],"expected":"19.2% of crop production value; just over 10% of national UAA for weather/climate risk policies. Different denominators."},
+  {"id":"Q4","question":"What does the CEVI index combine to assess agricultural climate risks in Italy?","pages":[66],"expected":"Meteo-climatic exposure to flood/drought/frost and crop production vulnerability."},
+  {"id":"Q5","question":"Which clustering method was used to group European agricultural sectors in the report?","pages":[20],"expected":"K-means, unsupervised clustering minimizing Euclidean distances."},
+  {"id":"Q6","question":"Which data sources were used for the report's agricultural clustering indicators and water stress?","pages":[20],"expected":"Eurostat for other indicators; FAOSTAT for agricultural water stress."},
+  {"id":"Q7","question":"What is the insurance policy number of Viktoriia's private farm?","pages":[],"expected":"Abstain: private policy number is not in this public report."},
+  {"id":"Q8","question":"What exact wheat yield will my farm achieve in 2027?","pages":[],"expected":"Abstain: no farm identity, farm data or reliable exact future yield in evidence."}
+]
