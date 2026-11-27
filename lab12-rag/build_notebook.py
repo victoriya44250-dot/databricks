@@ -17,7 +17,7 @@ Run on **Serverless**, top to bottom. Uses the existing 550-chunk index.
 Only `rag_runs` is written (append); source pages, chunks and index are preserved.
 The evaluation calls the LLM 16 times. Keep the evaluation switch false for the first demo.
 """)
-    code("%pip install databricks-ai-search")
+    code("%pip install databricks-ai-search==0.83")
     code("dbutils.library.restartPython()")
     md("## 1. Configuration and functions\nThis cell is self-contained after the restart.")
     code((ROOT / "src/rag_helpers.py").read_text(encoding="utf-8") + "\n\n" + (ROOT / "notebooks/runtime.py").read_text(encoding="utf-8"))

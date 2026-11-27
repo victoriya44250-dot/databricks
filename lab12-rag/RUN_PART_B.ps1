@@ -1,7 +1,7 @@
 param([switch]$Deploy, [switch]$RunQA, [string]$KitPath = '')
 $ErrorActionPreference = 'Stop'
 $projectPath = $PSScriptRoot
-$kitPath = if ($KitPath) { [IO.Path]::GetFullPath($KitPath) } else { [IO.Path]::GetFullPath((Join-Path $projectPath '../../work/ai-dev-kit')) }
+$kitPath = if ($KitPath) { [IO.Path]::GetFullPath($KitPath) } elseif (Test-Path (Join-Path $projectPath 'vendor/ai-dev-kit')) { Join-Path $projectPath 'vendor/ai-dev-kit' } else { [IO.Path]::GetFullPath((Join-Path $projectPath '../../work/ai-dev-kit')) }
 $kitPython = Join-Path $kitPath '.venv/Scripts/python.exe'
 $evidencePath = Join-Path $projectPath 'evidence'
 New-Item -ItemType Directory -Force $evidencePath | Out-Null

@@ -47,8 +47,17 @@ async def main():
                 ("warehouse", "manage_warehouse", {"action": "list"}),
                 ("counts", "execute_sql", {"sql_query": "SELECT 'pages' AS object_name, count(*) AS n FROM workspace.viktoriia_kalenichenko_lab12.document_pages UNION ALL SELECT 'chunks', count(*) FROM workspace.viktoriia_kalenichenko_lab12.document_chunks", "output_format": "json"}),
                 ("chunks_grants", "execute_sql", {"sql_query": "SHOW GRANTS ON TABLE workspace.viktoriia_kalenichenko_lab12.document_chunks", "output_format": "json"}),
+                ("catalog_grants", "execute_sql", {"sql_query": "SHOW GRANTS ON CATALOG workspace", "output_format": "json"}),
+                ("schema_grants", "execute_sql", {"sql_query": "SHOW GRANTS ON SCHEMA workspace.viktoriia_kalenichenko_lab12", "output_format": "json"}),
+                ("logs_grants", "execute_sql", {"sql_query": "SHOW GRANTS ON TABLE workspace.viktoriia_kalenichenko_lab12.rag_runs", "output_format": "json"}),
                 ("rag_logs", "execute_sql", {"sql_query": "SELECT * FROM workspace.viktoriia_kalenichenko_lab12.rag_runs ORDER BY created_at DESC LIMIT 40", "output_format": "json"}),
             ]
+            state_path = root / ".databricks/bundle/dev/resources.json"
+            if state_path.exists():
+                state = json.loads(state_path.read_text(encoding="utf-8-sig"))
+                for key, resource in state.get("state", {}).items():
+                    if key.startswith("resources.jobs."):
+                        calls.append((key + "_runs", "manage_job_runs", {"action": "list", "job_id": int(resource["__id__"]), "limit": 3}))
             for label, tool, arguments in calls:
                 print(f"Calling {label} ...", flush=True)
                 try:

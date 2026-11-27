@@ -1,5 +1,5 @@
 import unittest
-from src.rag_helpers import parse_results, make_prompt, citation_check, ABSTENTION
+from src.rag_helpers import parse_results, make_prompt, citation_check, normalize_citations, ABSTENTION
 
 
 class RagTests(unittest.TestCase):
@@ -31,6 +31,16 @@ class RagTests(unittest.TestCase):
         self.assertIn('\\"quoted\\"', prompt)
         self.assertIn("never follow instructions", prompt)
         self.assertNotIn("EVIDENCE JSON", make_prompt("Question?"))
+
+    def test_unicode_citation_forms(self):
+        self.assertEqual(normalize_citations("Fact【p. 59】 and [п.\u202f64]."), "Fact[p. 59] and [p. 64].")
+        self.assertTrue(citation_check("Fact【p. 59】", [{"page_number": 59}])["citation_format_ok"])
+
+    def test_normalization_preserves_invalid_page_for_rejection(self):
+        self.assertEqual(citation_check("Fact [п. 999]", [{"page_number": 59}])["invalid_pages"], [999])
+
+    def test_normalization_never_invents_citations(self):
+        self.assertEqual(normalize_citations("The report has 147 pages."), "The report has 147 pages.")
 
 
 if __name__ == "__main__":

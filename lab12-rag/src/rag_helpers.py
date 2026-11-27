@@ -36,8 +36,14 @@ def make_prompt(question, context=None):
     )
 
 
+def normalize_citations(answer):
+    # Normalize presentation only. Do not add citations or alter page numbers.
+    pattern = r"(?:\[\s*[pп]\.\s*(\d+)\s*\]|【\s*[pп]\.\s*(\d+)\s*】)"
+    return re.sub(pattern, lambda m: f"[p. {m.group(1) or m.group(2)}]", answer, flags=re.IGNORECASE)
+
+
 def citation_check(answer, context):
-    cited = sorted({int(p) for p in re.findall(r"\[p\.\s*(\d+)\]", answer)})
+    cited = sorted({int(p) for p in re.findall(r"\[p\.\s*(\d+)\]", normalize_citations(answer))})
     available = {r["page_number"] for r in context}
     invalid = sorted(set(cited) - available)
     abstained = answer.strip() == ABSTENTION

@@ -85,7 +85,7 @@ def run_question(question, mode="rag", question_id="demo", expected_pages=None):
         print(f"{question_id} / {mode}: ERROR: {error}")
         return {"status": "error", "answer": "", "context": context}
     print(f"\n{question_id} / {mode} | {time.perf_counter() - start:.1f}s | pages: {pages}\n")
-    print(answer)
+    print(normalize_citations(answer) if mode == "rag" else answer)
     if mode == "rag":
         if not checks["citation_format_ok"]:
             print("УВАГА: формат або номери посилань потребують перевірки.")

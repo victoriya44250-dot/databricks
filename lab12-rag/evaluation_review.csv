@@ -1,17 +1,17 @@
 question_id,mode,relevance_0_2,completeness_0_2,unsupported_claims,missing_context,abstention_appropriate,notes
-Q1,rag,,,,,,
-Q1,baseline,,,,,,
-Q2,rag,,,,,,
-Q2,baseline,,,,,,
-Q3,rag,,,,,,
-Q3,baseline,,,,,,
-Q4,rag,,,,,,
-Q4,baseline,,,,,,
-Q5,rag,,,,,,
-Q5,baseline,,,,,,
-Q6,rag,,,,,,
-Q6,baseline,,,,,,
-Q7,rag,,,,,,
-Q7,baseline,,,,,,
-Q8,rag,,,,,,
-Q8,baseline,,,,,,
+Q1,rag,2,2,no_core_mismatch,no,not_applicable,Assisted review; insurance example could cite its specific passage
+Q1,baseline,1,0,reference_mismatch,not_applicable,not_applicable,Assisted review; generic levels differ from report
+Q2,rag,2,2,no_core_mismatch,no,not_applicable,Assisted review; alternate citation brackets
+Q2,baseline,1,1,reference_mismatch,not_applicable,not_applicable,Assisted review; flood/drought overlap but missing frost and wrong scope
+Q3,rag,2,2,no_core_mismatch,no,not_applicable,Assisted review; correct values and distinct denominators
+Q3,baseline,1,0,no_claim,not_applicable,yes_without_report,Assisted review; honest lack of exact figures
+Q4,rag,2,2,no_core_mismatch,no,not_applicable,Assisted review; definition and components supported on page 66
+Q4,baseline,1,0,reference_mismatch,not_applicable,not_applicable,Assisted review; acronym and components differ from report
+Q5,rag,2,2,no_core_mismatch,no,not_applicable,Assisted review; method and SSE supported on page 20
+Q5,baseline,1,0,no_claim,not_applicable,yes_without_report,Assisted review; honest lack of report
+Q6,rag,2,2,no_core_mismatch,no,not_applicable,Assisted review; source distinction supported
+Q6,baseline,1,0,no_claim,not_applicable,yes_without_report,Assisted review; honest lack of source details
+Q7,rag,2,,no_claim,expected_absence,yes,Assisted review; private policy not in public report
+Q7,baseline,2,,no_claim,not_applicable,yes,Assisted review; also abstained
+Q8,rag,2,,no_claim,expected_absence,yes,Assisted review; exact future yield unavailable
+Q8,baseline,2,,no_claim,not_applicable,yes,Assisted review; also abstained
