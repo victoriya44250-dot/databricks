@@ -6,11 +6,10 @@ sync:
     - src/*.py
     - notebooks/*.py
   exclude:
-    - historical/**
+    - screenshots/**
     - tests/**
     - scripts/**
     - '*.md'
-    - '*.ps1'
     - requirements-dev.txt
 
 resources:

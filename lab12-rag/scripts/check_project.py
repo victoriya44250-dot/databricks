@@ -32,7 +32,7 @@ def main():
         assert job["environments"][0]["spec"]["dependencies"] == ["databricks-ai-search==0.83"]
     assert (ROOT / "src/__init__.py").is_file()
     assert "src/*.py" in config["sync"]["include"]
-    assert "historical/**" in config["sync"]["exclude"]
+    assert "screenshots/**" in config["sync"]["exclude"]
     for path in (ROOT / "notebooks").glob("*.py"):
         text = path.read_text(encoding="utf-8")
         assert "entry_point" not in text, f"Unsupported notebook-context import: {path}"
