@@ -1,47 +1,52 @@
-# AI Dev Kit: installation and verification record
+﻿# AI-assisted development and evidence
 
-Date: 2026-11-27.
+Review date: 2026-11-28. The local refactor is awaiting approval for publication and deployment. Historical executions do not validate the modified code.
 
-| Component | Observed result |
+## Where the agent and MCP run
+
+Codex is the coding agent used for Part B. The Databricks AI Dev Kit MCP server runs locally and exposes Databricks tools to Codex using CLI profile `lab12_free`. It is not a Databricks Job, a deployed QA endpoint, or a separate chat application.
+
+Project registration is in `../.codex/config.toml`; the four Databricks skills are under `../.agents/skills/`. These local configuration directories are ignored by Git. The working AI Dev Kit checkout and Python environment were reused from an earlier local installation, at revision `07f8e1ccf3dfc09a794eaf86fd15a5848f9d63d4`. The upstream MCP installer failed during the current recovery attempt; the project registration was restored manually using the supported configuration format. This was not a fresh successful installer run.
+
+The QA application remains the authoritative notebooks and their shared `src/rag_helpers.py` module. No MLflow ResponsesAgent wrapper or custom serving endpoint has been added.
+
+## Observed checks
+
+| Check | Evidence and scope |
 |---|---|
-| CLI | Databricks CLI 1.22.1 |
-| AI Dev Kit checkout | `07f8e1ccf3dfc09a794eaf86fd15a5848f9d63d4` |
-| Windows installer | `install.ps1` executed for the project; current upstream delegates skills to `databricks aitools` |
-| Skills | Release 0.2.32; dabs, unity-catalog, vector-search, core downloaded to project `.agents/skills` |
-| Installer adjustment | CLI rejected project-scoped Codex auto-install; used its documented `--path .agents/skills` option |
-| MCP packages | `databricks-mcp-server==0.1.0`, `databricks-tools-core==0.1.0`, SDK 0.171.0, FastMCP 3.4.11 |
-| MCP registration | Official `mcp_install.ps1` created project `.codex/config.toml`, profile `lab12_free` |
-| MCP protocol check | Real stdio client completed initialize/list_tools: **44 tools** in this revision |
-| Agent use of skills | Reviewed DAB configuration, deployment guidance, Unity Catalog access and Vector Search guidance |
-| MCP workspace calls | Confirmed via user-run launcher: SQL counted 147 pages and 550 chunks; warehouse listing succeeded; SHOW GRANTS on chunks returned no explicit rows |
-| Bundle validation and plan | Confirmed through CLI: strict validation succeeded; final plan adds 2 jobs, changes/deletes 0 existing resources |
-| Bundle deployment | Two jobs created. MCP job history confirms QA run 572169945663116 and smoke run 1023341086600454 both SUCCESS |
-| QA execution | 18 successful logged model calls; see EVALUATION.md |
-| GitHub CI | PR 17, first workflow run 45966117325 succeeded; deployment job skipped on PR as designed |
-| GitHub CI/CD deployment | Not yet verified |
+| MCP protocol | `scripts/check_mcp.py` performed initialization, listed 44 tools, and completed 11 read-only tool calls. |
+| Direct agent MCP use | Registered `mcp__databricks__execute_sql` returned 147 document pages and 550 chunks; repeated successfully during this review. Registered `manage_vs_index` reported the existing Delta Sync index ONLINE. |
+| Workspace inspection through MCP | Inspected Unity Catalog objects, row counts, log schemas, AI Search resources, existing Jobs and run history. No new Job or inference was started. |
+| Local checks | 23 unit tests passed; 16 Python files parsed; actionlint 1.7.12 passed. These are recorded checks from the current refactor, not tests rerun during the UI comparison. |
+| Bundle checks through CLI | Strict validation passed. Plan updates the existing `rag_qa` and `rag_smoke` Jobs: 0 creates, 2 updates, 0 deletes. Source-module synchronization was checked with a dry run. CLI checks are not MCP usage. |
+| Historical GitHub CD | Workflow run 45970698837 at commit `e904fe1` succeeded, including deployment and smoke Job run 848125194702379. This is evidence for the previous version only. |
+| Current refactor CI/CD | Pending approval and execution: commit, push, PR, CI, merge, CD, and deployed smoke verification. |
+| UI screenshots | Not yet captured; `screenshots/` is currently empty. |
 
-The lab brief describes 75+ tools. This checkout lists 44 consolidated tools (for example `manage_jobs` and `manage_uc_objects` expose multiple actions); the actual observed count is recorded instead of repeating the brief's number.
+Machine-readable diagnostics are in the ignored local `evidence/` directory, including `mcp_workspace.json`, `mcp_direct_tools.json`, `predeployment-review.json`, and `previous_github_cd.json`. These files support inspection; they are not screenshots and are not published automatically. Selected evidence must be reviewed for credentials and private information before publication.
 
-Windows build issue: the automatically selected temporary path contained braces, causing setuptools variable expansion to fail. Installation succeeded after using a workspace-local temporary directory. No dependency source code was modified.
+## UI capture checklist
 
-The CLI login profile was created by the user, but the agent's process cannot read the Windows keyring. The user-run launcher is therefore used for authenticated checks. No token was requested in chat or written into project files.
+Save genuine captures to `screenshots/`. Capture existing state and saved outputs first. Do not rerun ingestion, evaluation, inference, or Jobs just to obtain a screenshot without approval. Label older results as historical.
 
-Successful remote tool calls are recorded in local `evidence/mcp_workspace.json`. The first attempt to read `rag_runs` correctly reported that the table did not yet exist. Local deployment is not proof of CI/CD; those results remain separate.
+| Suggested filename | View and required content |
+|---|---|
+| `01-catalog.png` | Catalog Explorer: the Lab 12 schema, raw document volume, document tables, and QA log/evaluation tables. |
+| `02-search-index.png` | Existing `document_chunks_index` details: status, source table, and indexed rows. |
+| `03-rag-baseline.png` | Notebook 05 saved outputs: question, retrieved passages, RAG answer with citations, and baseline answer. Use multiple captures if needed. |
+| `04-evaluation.png` | Notebook 06 saved five-question results, including the separate Q3 HYBRID follow-up and limitations. |
+| `05-qa-log.png` | Existing `qa_log` records showing RAG/baseline modes and stored responses. |
+| `06-mcp.png` | Codex's actual Databricks MCP tool call and returned counts. A screenshot of a CLI command alone does not prove MCP use. |
+| `07-ci-review.png` | The new PR and successful CI checks, after the approved Git workflow. |
+| `08-cd.png` | Successful GitHub Actions deployment for the new merged commit. |
+| `09-smoke-job.png` | Corresponding Databricks smoke Job run and successful task output for the deployed refactor. |
 
-## Reproduction on Windows
+Playground and MLflow tracing screenshots would require additional implemented features. Do not present a chat with the base LLM as evidence that this RAG application is deployed in Playground.
 
-Run in the project directory, using the CLI profile for the intended Free workspace. Keep the kit checkout on disk because MCP registration refers to its Python environment by absolute path.
+## Human review and guardrails
 
-```powershell
-git clone https://github.com/databricks-solutions/ai-dev-kit.git vendor/ai-dev-kit
-git -C vendor/ai-dev-kit checkout 07f8e1ccf3dfc09a794eaf86fd15a5848f9d63d4
-$env:DEVKIT_SCOPE = 'project'
-$env:DEVKIT_PROFILE = 'lab12_free'
-& ./vendor/ai-dev-kit/install.ps1 --tools codex --skills databricks-dabs,databricks-unity-catalog
-# Explicit destination works around this CLI revision's project-scoped Codex limitation.
-databricks aitools install --path .agents/skills --skills databricks-core,databricks-dabs,databricks-unity-catalog,databricks-vector-search
-& ./vendor/ai-dev-kit/databricks-mcp-server/setup.ps1
-& ./vendor/ai-dev-kit/databricks-mcp-server/mcp_install.ps1 -Profile_ lab12_free -Tools codex -SkipVenv
-```
+AI assistance accelerated MCP recovery, helper integration, tests, Bundle configuration, and CI/CD checks. Human review remains necessary to preserve the specialized prompt, distinguish historical evaluation from new results, inspect permissions, and approve remote execution and cost.
 
-If setuptools rejects a temporary directory containing braces, set `TEMP` and `TMP` to an existing project-local `build-temp` folder for that installation process and repeat setup. Do not put credentials into any of these files. To use the registered MCP server directly in an agent UI, open this project and reload its MCP configuration; the supplied check script also exercises the actual stdio protocol without requiring an agent reload.
+The deployment-plan guard rejects unexpected resource keys, new or deleted Jobs, and changes to expected existing Job identities. CI/CD deploys the smoke workflow without automatically running answer generation or evaluation. Citation diagnostics check citation syntax and retrieved-page membership; they do not establish factual correctness. Unit tests and Bundle validation do not establish that refactored notebooks execute successfully on Serverless; the approved deployment and smoke run must supply that evidence.
+
+Official references: [Databricks AI Dev Kit](https://github.com/databricks-solutions/ai-dev-kit), [Codex MCP configuration](https://developers.openai.com/codex/mcp).

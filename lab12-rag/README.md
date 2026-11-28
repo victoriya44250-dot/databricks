@@ -1,5 +1,7 @@
 # Lab 12 — EU Agricultural Risk Knowledge Assistant
 
+> Refactor in progress: the authoritative implementation is notebooks 01-07. Bundle now uses 05_rag_answer.py, 06_evaluation.py and 07_smoke_test.py. Set the project_root widget to the absolute Workspace Files project directory for manual runs; Bundle passes it automatically. The older narrative below describes the previous implementation and will be reconciled after CI/CD verification.
+
 Навчальний RAG-проєкт у Databricks Free Edition. Асистент шукає уривки офіційного звіту World Bank про управління аграрними ризиками в ЄС і формує відповіді з номерами PDF-сторінок. Це вузька база знань одного документа, а не універсальний консультант з агрономії.
 
 ## Підтверджений стан
@@ -50,17 +52,17 @@ World Bank Ukraine виключено. FAO/IPCC не входять до пот�
 
 ## Запуск QA
 
-1. Імпортувати `notebooks/05_rag_complete.ipynb` у Databricks Workspace.
+1. Імпортувати `notebooks/05_rag_answer.py and notebooks/06_evaluation.py` у Databricks Workspace.
 2. Обрати Serverless; виконати комірки згори вниз. Встановлення SDK і restart включені.
 3. Перевірити дві demo-відповіді: із retrieval і без нього. Вхідні уривки друкуються для звірки.
 4. У віджеті `run_evaluation` встановити `true`, виконати evaluation-комірку і наступну monitoring-комірку. Це 8 запитань × 2 режими = до 16 LLM-викликів плюс два demo-виклики. Bundle job передає цей параметр автоматично.
-5. Зберегти notebook з результатами. Переглянути `evaluation_review.csv`: він містить попередні оцінки асистента за фактичними відповідями; студентка має звірити їх з PDF.
+5. Зберегти notebook з результатами. Переглянути `historical/agent-eight-question-run/evaluation_review.csv`: він містить попередні оцінки асистента за фактичними відповідями; студентка має звірити їх з PDF.
 
 Notebook самодостатній. Він не перезаписує `document_pages`, `document_chunks` чи індекс. `rag_runs` доповнюється новими рядками. Повторний запуск створює нові вимірювання, тому для аналізу використовується `session_id`. Перевірена версія SDK `databricks-ai-search==0.83` зафіксована в notebook і Bundle та записується в журнал.
 
 ## Оцінювання
 
-Вісім development cases у `evaluation_cases.json`: 6 запитань із перевіреними опорними сторінками, 2 без відповіді в документі. Очікувані відповіді не передаються моделі. Однакові модель і запитання використовуються з retrieval та без нього. Це невелика ручна перевірка, не незалежний benchmark.
+Вісім development cases у `historical/agent-eight-question-run/evaluation_cases.json`: 6 запитань із перевіреними опорними сторінками, 2 без відповіді в документі. Очікувані відповіді не передаються моделі. Однакові модель і запитання використовуються з retrieval та без нього. Це невелика ручна перевірка, не незалежний benchmark.
 
 Автоматично збираються: latency, помилки, наявність очікуваної сторінки у top-5 і коректність номерів цитованих сторінок. `citation_format_ok` перевіряє формат і входження сторінки до контексту; **не перевіряє, чи твердження дійсно випливає з цитати**. Оновлена версія спочатку нормалізує варіанти `【p. 59】` та `[п. 64]`; сирі відповіді й старі метрики в журналі не переписуються. Expected-page hit теж не гарантує, що потрібний уривок сторінки знайдено. Для baseline ці retrieval-метрики не застосовуються.
 
@@ -72,7 +74,7 @@ Notebook самодостатній. Він не перезаписує `documen
 - missing context: чи був потрібний факт серед отриманих уривків;
 - out-of-scope: чи відмовилася модель вигадувати відповідь.
 
-Фактичні результати та обмеження наведені в `EVALUATION.md`, самі відповіді — в `evaluation_results.json`. На шести development-запитаннях RAG відтворив основні очікувані факти; baseline тричі дав інший зміст і тричі визнав брак даних. Обидва режими утрималися від відповіді на два запитання поза корпусом. Це невеликий вибірковий експеримент, не загальний показник точності.
+Фактичні результати та обмеження наведені в `EVALUATION.md`, самі відповіді — в `historical/agent-eight-question-run/evaluation_results.json`. На шести development-запитаннях RAG відтворив основні очікувані факти; baseline тричі дав інший зміст і тричі визнав брак даних. Обидва режими утрималися від відповіді на два запитання поза корпусом. Це невеликий вибірковий експеримент, не загальний показник точності.
 
 ## Логування, доступ і вартість
 
@@ -90,13 +92,13 @@ Notebook використовує авторизацію поточної сес
 
 У поточному upstream [AI Dev Kit](https://github.com/databricks-solutions/ai-dev-kit) навички встановлюються через Databricks AI Tools, а MCP server має окремий installer. На Windows використовується `install.ps1`, еквівалент Linux `install.sh`. Для відтворюваності потрібно зберегти commit встановленого kit і фактичний результат інсталяції.
 
-`databricks.yml` додає два Serverless jobs: `rag_smoke` перевіряє 550 унікальних непорожніх chunks та роботу фільтрованого retrieval; `rag_qa` запускає відповіді, порівняння і журналювання. Наявні UC-об'єкти й індекс є prerequisites, Bundle не створює їх повторно. Виконані notebooks 01–04 експортовані в `notebooks/original/`; код збережено, outputs та службові метадані прибрано. Notebook 03 лише вмикає CDF: endpoint та індекс створені через UI з параметрами, описаними вище. Для повного повторення спочатку створити schema/managed volume, завантажити PDF, виконати 01–03, створити endpoint/index, дочекатися Online і виконати 04–05. Notebooks 01–02 перезаписують відповідні навчальні таблиці; для поточної здачі повторний запуск не потрібний.
+`databricks.yml` додає два Serverless jobs: `rag_smoke` перевіряє 550 унікальних непорожніх chunks та роботу фільтрованого retrieval; `rag_qa` запускає відповіді, порівняння і журналювання. Наявні UC-об'єкти й індекс є prerequisites, Bundle не створює їх повторно. Виконані notebooks 01–04 експортовані в `notebooks/`; код збережено, outputs та службові метадані прибрано. Notebook 03 лише вмикає CDF: endpoint та індекс створені через UI з параметрами, описаними вище. Для повного повторення спочатку створити schema/managed volume, завантажити PDF, виконати 01–03, створити endpoint/index, дочекатися Online і виконати 04–05. Notebooks 01–02 перезаписують відповідні навчальні таблиці; для поточної здачі повторний запуск не потрібний.
 
 Для локальної перевірки:
 
 ```powershell
 python -m unittest discover -s tests -v
-python build_notebook.py
+python -B scripts/check_project.py
 databricks bundle validate --strict -t dev -p lab12_free
 databricks bundle plan -t dev -p lab12_free
 ```
@@ -111,7 +113,7 @@ databricks bundle run -t dev -p lab12_free rag_qa
 
 Для репозиторію Week 8 папка цього проєкту має бути `lab12-rag/`, а файл `.github/workflows/lab12.yml` треба розмістити у **корені репозиторію**, не всередині папки лабораторної. PR запускає тести. Merge у main або ручний запуск запускає validation, deployment і smoke test. Секрети `LAB12_DATABRICKS_HOST` та `LAB12_DATABRICKS_TOKEN` відокремлені від Azure PROD Week 8; потрібне environment `lab12-dev`. Якщо токени недоступні у workspace, спочатку налаштувати підтримувану workload identity/OAuth-авторизацію і відповідно змінити workflow; локальний browser-login не є CI credentials. Не використовувати старі PROD credentials для нового Free workspace.
 
-CI/CD у цій версії є підготовленою конфігурацією, доки не додано посилання на успішний run. Локальний deploy не є доказом GitHub CI/CD. PR review і перевірка плану потрібні перед merge. Локальний `RUN_PART_B.ps1 -Deploy -RunQA` поєднує ці кроки; при перенесенні проєкту передати `-KitPath` зі шляхом до встановленого AI Dev Kit.
+CI/CD у цій версії є підготовленою конфігурацією, доки не додано посилання на успішний run. Локальний deploy не є доказом GitHub CI/CD. PR review і перевірка плану потрібні перед merge. Локальний `RUN_PART_B.ps1` поєднує ці кроки; при перенесенні проєкту передати `the project MCP configuration` зі шляхом до встановленого AI Dev Kit.
 
 ## Критичний висновок
 
