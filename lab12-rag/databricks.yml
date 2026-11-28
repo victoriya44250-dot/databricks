@@ -1,18 +1,40 @@
 bundle:
   name: lab12-agri-rag
 
+sync:
+  include:
+    - src/*.py
+    - notebooks/*.py
+  exclude:
+    - screenshots/**
+    - tests/**
+    - scripts/**
+    - '*.md'
+    - requirements-dev.txt
+
 resources:
   jobs:
     rag_qa:
       name: lab12-rag-qa-evaluation
       max_concurrent_runs: 1
+      timeout_seconds: 1800
       tasks:
         - task_key: answer_and_evaluate
           environment_key: default
           notebook_task:
-            notebook_path: ./notebooks/05_rag_complete.ipynb
+            notebook_path: ./notebooks/05_rag_answer.py
             base_parameters:
-              run_evaluation: "true"
+              project_root: ${workspace.file_path}
+          max_retries: 0
+        - task_key: evaluate
+          depends_on:
+            - task_key: answer_and_evaluate
+          environment_key: default
+          notebook_task:
+            notebook_path: ./notebooks/06_evaluation.py
+            base_parameters:
+              project_root: ${workspace.file_path}
+          max_retries: 0
       environments:
         - environment_key: default
           spec:
@@ -22,11 +44,15 @@ resources:
     rag_smoke:
       name: lab12-rag-smoke
       max_concurrent_runs: 1
+      timeout_seconds: 600
       tasks:
         - task_key: verify_existing_rag
           environment_key: default
           notebook_task:
-            notebook_path: ./notebooks/06_smoke.py
+            notebook_path: ./notebooks/07_smoke_test.py
+            base_parameters:
+              project_root: ${workspace.file_path}
+          max_retries: 0
       environments:
         - environment_key: default
           spec:
